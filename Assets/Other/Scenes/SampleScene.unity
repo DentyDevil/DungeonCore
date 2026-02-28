@@ -59364,6 +59364,7 @@ MonoBehaviour:
     constructionSite: {fileID: 0}
     workersInWork: 0
     workPriority: 0
+    worldResource: {fileID: 0}
   currentBuildingTask: {fileID: 0}
 --- !u!212 &469165277
 SpriteRenderer:
@@ -59848,6 +59849,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JobManager
   pathfindingGrid: {fileID: 90513830}
   dungeonCore: {fileID: 377802281}
+  priorityDigTask: 2
+  priorityBuildTask: 1
+  priorityHaulTask: 3
 --- !u!114 &522289803
 MonoBehaviour:
   m_ObjectHideFlags: 0
