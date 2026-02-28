@@ -198,6 +198,14 @@ public class SkeletonWorker : MonoBehaviour
                     {
                         dropOnGround.transform.SetParent(transform);
                         currentPath = pathfinder.FindPath(transform.position, dungeonCore.transform.position);
+                        if(currentPath == null)
+                        {
+                            dropOnGround.transform.SetParent(null);
+                            jobManager.AddHaulJob(dropOnGround);
+                            jobManager.JobBecomeFree(job, 1);
+                            currentWorkerState = WorkerState.Idle;
+                            return;
+                        }
                         jobManager.RemoveHaulJob(dropOnGround);
                         targetIndex = 0;
                         currentWorkerState = WorkerState.TransferResourceToStorage;
