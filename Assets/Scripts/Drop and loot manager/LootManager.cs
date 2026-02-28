@@ -1,0 +1,23 @@
+using Unity.VisualScripting;
+using UnityEngine;
+
+public class LootManager : MonoBehaviour
+{
+    public JobManager jobManager;
+    public void DropFromTile(Vector3Int cell, ResourceData resourceData)
+    {
+        if (resourceData == null) { Debug.Log("This tile dont drop anyfing"); return; }
+        int chanceDropBones = Random.Range(1, 101);
+
+        if (chanceDropBones > 80)
+        {
+            Vector3 worldCell = new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0);
+
+            GameObject spawnedBone = Instantiate(resourceData.prefab, worldCell, Quaternion.identity);
+
+            WorldResource worldResource = spawnedBone.GetComponent<WorldResource>();
+
+            jobManager.AddHaulJob(worldResource);
+        }
+    }
+}
