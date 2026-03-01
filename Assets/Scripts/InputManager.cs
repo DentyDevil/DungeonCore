@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -11,7 +10,9 @@ public class InputManager : MonoBehaviour
         None,
         Digging,
         CancelDigging,
-        Building
+        Building,
+        CancelBuilding,
+        DeconstructBuilding
     }
     private GameMode currentMode = GameMode.None;
 
@@ -52,13 +53,13 @@ public class InputManager : MonoBehaviour
     private void Update()
     {
         MouseInput();
-        ResetAcrion();
+        ResetAction();
         CheckObstaclesForBuild();
     }
 
     void MouseInput()
     {
-        if (Input.GetMouseButtonDown(0) && (currentMode == GameMode.Digging || currentMode == GameMode.CancelDigging))
+        if (Input.GetMouseButtonDown(0) && (currentMode == GameMode.Digging || currentMode == GameMode.CancelDigging || currentMode == GameMode.CancelBuilding || currentMode == GameMode.DeconstructBuilding))
         {
             selectionBox.gameObject.SetActive(true);
 
@@ -70,7 +71,7 @@ public class InputManager : MonoBehaviour
             startMousePos.z = 0;
             startCell = GetMouseCellPosition();
         }
-        else if (Input.GetMouseButton(0) && (currentMode == GameMode.Digging || currentMode == GameMode.CancelDigging))
+        else if (Input.GetMouseButton(0) && (currentMode == GameMode.Digging || currentMode == GameMode.CancelDigging || currentMode == GameMode.CancelBuilding || currentMode == GameMode.DeconstructBuilding))
         {
             Vector3 currentMouseScreenPos = Input.mousePosition;
             endMousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -84,7 +85,7 @@ public class InputManager : MonoBehaviour
             float height = Mathf.Abs(currentMouseScreenPos.y - startMouseScreenPos.y);
             selectionBox.sizeDelta = new Vector2(width, height);
         }
-        else if (Input.GetMouseButtonUp(0) && (currentMode == GameMode.Digging || currentMode == GameMode.CancelDigging))
+        else if (Input.GetMouseButtonUp(0) && (currentMode == GameMode.Digging || currentMode == GameMode.CancelDigging || currentMode == GameMode.CancelBuilding || currentMode == GameMode.DeconstructBuilding))
         {
             if (selectionBox.gameObject.activeSelf)
             {
@@ -211,8 +212,29 @@ public class InputManager : MonoBehaviour
                         jobManager.RemoveDigJob(currentCell);
                     }
                 }
+                else if (currentMode == GameMode.CancelBuilding)
+                {
+                    if (jobManager.buildJobs.ContainsKey(currentCell))
+                    {
+                        Job currJob = jobManager.buildJobs[currentCell];
+                        currJob.constructionSite.CancelConstruction();
+                        pathfinderGrid.UpdateNodeWalkability(currentCell, true);
+                        occupiedCells.Remove(currentCell);
+                    }
+                }
+                else if (currentMode == GameMode.DeconstructBuilding)
+                {
+                    if (jobManager.buildings.ContainsKey(currentCell))
+                    {
+                        Building build = jobManager.buildings[currentCell];
+                        jobManager.AddDeconstructJob(build);
+                        highlightTilemap.SetTile(currentCell, pickaxeTile);
+                        jobManager.RemoveBuilding(build);
+                    }
+                }
             }
         }
+        jobManager.WakeUpDelayedTasks();
     }
     private void PreviewArea(Vector3 start, Vector3 end)
     {
@@ -279,6 +301,34 @@ public class InputManager : MonoBehaviour
             Debug.Log($"Current mode {currentMode}");
         }
     }
+    public void SetDeconstructBuilding()
+    {
+        if (currentMode != GameMode.DeconstructBuilding)
+        {
+            currentMode = GameMode.DeconstructBuilding;
+            Debug.Log($"Current mode {currentMode}");
+        }
+        else
+        {
+            currentMode = GameMode.None;
+            buildPreview.gameObject.SetActive(false);
+            Debug.Log($"Current mode {currentMode}");
+        }
+    }
+    public void SetCancelBuildingMode()
+    {
+        if (currentMode != GameMode.CancelBuilding)
+        {
+            currentMode = GameMode.CancelBuilding;
+            Debug.Log($"Current mode {currentMode}");
+        }
+        else
+        {
+            currentMode = GameMode.None;
+            buildPreview.gameObject.SetActive(false);
+            Debug.Log($"Current mode {currentMode}");
+        }
+    }
     public void Build(BuildingData selectedBuilding)
     {
         if(currentMode == GameMode.Building)
@@ -292,9 +342,9 @@ public class InputManager : MonoBehaviour
             buildPreview.gameObject.SetActive(false);
         }
     }
-    void ResetAcrion()
+    void ResetAction()
     {
-        if (currentMode == GameMode.Digging || currentMode == GameMode.CancelDigging || currentMode == GameMode.Building)
+        if (currentMode != GameMode.None)
         {
             if (Input.GetMouseButtonDown(1))
             {

@@ -11,6 +11,7 @@ public class ConstructionSite : MonoBehaviour
     [SerializeField] public List<ResourceCost> resourceCost = new List<ResourceCost>();
     [SerializeField] public List<ResourceCost> resourcesCollected = new List<ResourceCost>();
     [SerializeField] public int maxWorkers = 1;
+    [SerializeField] public bool isReadyToBuild = false;
 
     float timeToBuild;
     GameObject finalBuildingPrefab;
@@ -61,13 +62,41 @@ public class ConstructionSite : MonoBehaviour
                 return;
             }
         }
-        FinishConstruction();
+
+        isReadyToBuild = true;
+    }
+
+    public void Construct(float workAmount)
+    {
+        timeToBuild -= workAmount;
+        if(timeToBuild <= 0)
+        {
+            FinishConstruction();
+        }
     }
 
     void FinishConstruction()
     {
         Debug.Log("Стройка завершена");
-        Instantiate(finalBuildingPrefab, transform.position, Quaternion.identity);
+        GameObject newBuild = Instantiate(finalBuildingPrefab, transform.position, Quaternion.identity);
+        Building build = newBuild.GetComponent<Building>();
+        build.recipe = new List<ResourceCost>(resourceCost);
+        build.jobManager = JobManager;
+        JobManager.AddBuilding(build);
+        JobManager.RemoveBuildJob(this);
+        Destroy(gameObject);
+    }
+
+    public void CancelConstruction()
+    {
+        foreach(var resource in resourcesCollected)
+        {
+            for (int i = 0; i < resource.count; i++)
+            {
+                WorldResource worldRes = Instantiate(resource.resourceData.prefab, transform.position, Quaternion.identity).GetComponent<WorldResource>();
+                JobManager.AddHaulJob(worldRes);
+            }
+        }
         JobManager.RemoveBuildJob(this);
         Destroy(gameObject);
     }

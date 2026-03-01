@@ -4,7 +4,8 @@ public enum JobType
 {
     Dig,
     Build,
-    Haul
+    Haul,
+    Deconstruct
 }
 
 [System.Serializable]
@@ -14,9 +15,10 @@ public class Job
     public Vector3Int position;
     public GameObject dropGameObject;
     public ConstructionSite constructionSite;
+    public WorldResource worldResource;
+    public Building building;
     public int workersInWork;
     public int workPriority;
-    public WorldResource worldResource;
 
     public Job(JobType job, Vector3Int pos, int priority = 3)
     {
@@ -38,5 +40,13 @@ public class Job
         jobType = job;
         worldResource = _worldResource;
         workPriority = priority;
+    }
+    public Job(JobType job, Building _building, int priority = 3)
+    {
+        jobType = job;
+        building = _building;
+        workPriority= priority;
+
+        position = Vector3Int.FloorToInt(_building.transform.position);
     }
 }

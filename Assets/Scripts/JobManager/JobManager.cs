@@ -1,19 +1,24 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class JobManager : MonoBehaviour
 {
     [SerializeField] private PathfindingGrid pathfindingGrid;
+    [SerializeField] public Tilemap highlight;
     [SerializeField] private DungeonCore dungeonCore;
     public Dictionary<Vector3Int, Job> digJobs = new Dictionary<Vector3Int, Job>();
     public Dictionary<Vector3Int, Job> buildJobs = new Dictionary<Vector3Int, Job>();
     public Dictionary<WorldResource, Job> haulJobs = new Dictionary<WorldResource, Job>();
+    public Dictionary<Vector3Int, Job> deconstructJobs = new Dictionary<Vector3Int, Job>();
+    public Dictionary<Vector3Int, Building> buildings = new Dictionary<Vector3Int, Building>();
     public HashSet<Vector3Int> unreachebleTasks = new HashSet<Vector3Int>();
 
     [Header("Priority tasks")]
     public int priorityDigTask = 3;
     public int priorityBuildTask = 3;
     public int priorityHaulTask = 3;
+    public int priorityDeconstructTask = 3;
 
     //Методы для работы с копанием
     public void AddDigJob(Vector3Int cellPos)
@@ -68,6 +73,29 @@ public class JobManager : MonoBehaviour
         haulJobs.Remove(drop);
     }
 
+    //Методы работы с разбором зданий
+    public void AddDeconstructJob(Building building)
+    {
+        var job = new Job(JobType.Deconstruct, building);
+
+        deconstructJobs.TryAdd(job.position, job);
+    }
+    public void RemoveDeconstruct(Building building)
+    {
+        Vector3Int position = Vector3Int.FloorToInt(building.transform.position);
+        deconstructJobs.Remove(position);
+    }
+    //Методы добавления зданий в список зданий
+    public void AddBuilding(Building building)
+    {
+        Vector3Int position = Vector3Int.FloorToInt(building.transform.position);
+        buildings.TryAdd(position, building);
+    }
+    public void RemoveBuilding(Building building)
+    {
+        Vector3Int position = Vector3Int.FloorToInt(building.transform.position);
+        buildings.Remove(position);
+    }
 
     //Методы выдачи работы
     public Job DelegateWork(Vector3 unitPosition)
@@ -85,6 +113,8 @@ public class JobManager : MonoBehaviour
         if (bestDigdJob != null) candidates.Add((bestDigdJob, digDist, priorityDigTask));
         var (bestHaulJob, haulDist) = TryGetHaulJob(unitPosition);
         if (bestHaulJob != null) candidates.Add((bestHaulJob, haulDist, priorityHaulTask));
+        var (BestDestrucrionJob, destructionDistance) = TryGetDeconstructionJob(unitPosition);
+        if (BestDestrucrionJob != null) candidates.Add((BestDestrucrionJob, destructionDistance, priorityDeconstructTask));
         
         foreach (var cand in candidates)
         {
@@ -145,7 +175,7 @@ public class JobManager : MonoBehaviour
         foreach (var buildTask in buildJobs)
         {
             if (buildTask.Value.workersInWork >= buildTask.Value.constructionSite.maxWorkers) continue;
-            if(!HasResourcesForBuild(buildTask.Value.constructionSite)) continue;
+            if(!HasResourcesForBuild(buildTask.Value.constructionSite) && !buildTask.Value.constructionSite.isReadyToBuild) continue;
 
             Vector3 jobPos = buildTask.Key;
 
@@ -258,6 +288,35 @@ public class JobManager : MonoBehaviour
         return (closestJob, minDistance);
     }
 
+    (Job BestJob, float bestDistance) TryGetDeconstructionJob(Vector3 unitPosition)
+    {
+        Job closestJob = null;
+        int bestPriority = int.MaxValue;
+        float minDistance = Mathf.Infinity;
+
+        foreach(var deconstructionTask in deconstructJobs)
+        {
+            if(deconstructionTask.Value.workersInWork >= 1) continue;
+            float distance = Vector3.Distance(unitPosition, deconstructionTask.Value.building.transform.position);
+            if(deconstructionTask.Value.workPriority < bestPriority)
+            {
+                bestPriority=deconstructionTask.Value.workPriority;
+                minDistance = distance;
+                closestJob = deconstructionTask.Value;
+            }
+            else if(deconstructionTask.Value.workPriority == bestPriority)
+            {
+                if (distance < minDistance)
+                {
+                    closestJob = deconstructionTask.Value;
+                    minDistance = distance;
+                }
+            }
+
+        }
+        return (closestJob, minDistance);
+    }
+
     bool HasResourcesForBuild (ConstructionSite site)
     {
         foreach (var neededRes in site.resourceCost)
@@ -282,5 +341,9 @@ public class JobManager : MonoBehaviour
 
         }
         return false;
+    }
+    public void ClearHighlight(Vector3Int position)
+    {
+        highlight.SetTile(position, null);
     }
 }

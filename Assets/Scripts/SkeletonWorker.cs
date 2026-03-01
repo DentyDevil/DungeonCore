@@ -13,7 +13,10 @@ public class SkeletonWorker : MonoBehaviour
         GoToGetResource,
         TransferResourceToStorage,
         TowardResourceToBuild,
-        Building
+        GoToBuild,
+        Building,
+        GoToDecunstructBuilding,
+        DecunstructBuilding
     }
     private WorkerState currentWorkerState = WorkerState.Idle;
 
@@ -32,6 +35,7 @@ public class SkeletonWorker : MonoBehaviour
     private Vector3Int currentTargetToDigging;
     private WorldResource dropOnGround;
     public ConstructionSite currentBuildingTask;
+    public Building currentDecunstructBuilding;
     private Rigidbody2D rb;
 
     private List<Node> currentPath;
@@ -84,41 +88,58 @@ public class SkeletonWorker : MonoBehaviour
                         break;
                     case JobType.Build:
                         currentBuildingTask = job.constructionSite;
-
-                        foreach (var nedeedRes in currentBuildingTask.resourceCost)
+                        if (!currentBuildingTask.isReadyToBuild)
                         {
-                            var collected = currentBuildingTask.resourcesCollected.Find(r => r.resourceData == nedeedRes.resourceData);
-
-                            int collectedCount = 0;
-                            if (collected != null) collectedCount = collected.count;
-
-                            if(collectedCount < nedeedRes.count)
+                            foreach (var nedeedRes in currentBuildingTask.resourceCost)
                             {
-                                ResourceData resType = nedeedRes.resourceData;
+                                var collected = currentBuildingTask.resourcesCollected.Find(r => r.resourceData == nedeedRes.resourceData);
 
-                                dropOnGround = jobManager.GetResourceForBuild(transform.position, resType);
+                                int collectedCount = 0;
+                                if (collected != null) collectedCount = collected.count;
 
-                                if(dropOnGround != null)
+                                if (collectedCount < nedeedRes.count)
                                 {
-                                    currentPath = pathfinder.FindPath(transform.position, dropOnGround.transform.position);
-                                    if(currentPath != null)
+                                    ResourceData resType = nedeedRes.resourceData;
+
+                                    dropOnGround = jobManager.GetResourceForBuild(transform.position, resType);
+
+                                    if (dropOnGround != null)
                                     {
-                                        targetIndex = 0;
-                                        currentWorkerState = WorkerState.GoToGetResource;
-                                        break;
+                                        currentPath = pathfinder.FindPath(transform.position, dropOnGround.transform.position);
+                                        if (currentPath != null)
+                                        {
+                                            targetIndex = 0;
+                                            currentWorkerState = WorkerState.GoToGetResource;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            Debug.Log("Путь не найден. Задача отложена.");
+                                            jobManager.JobBecomeFree(job, 1);
+                                        }
                                     }
                                     else
                                     {
-                                        Debug.Log("Путь не найден. Задача отложена.");
+                                        Debug.Log("Не нашли ресурс на полу.");
                                         jobManager.JobBecomeFree(job, 1);
                                     }
-                                }
-                                else
-                                {
-                                    Debug.Log("Не нашли ресурс на полу.");
-                                    jobManager.JobBecomeFree(job, 1);
-                                }
 
+                                }
+                            }
+                        }
+                        else
+                        {
+                            currentPath = pathfinder.FindPath(transform.position, currentBuildingTask.transform.position);
+                            if (currentPath == null)
+                            {
+                                Debug.Log("К стройке невозможно дойти");
+                                currentWorkerState = WorkerState.Idle;
+                                jobManager.JobBecomeFree(job, 1);
+                            }
+                            else
+                            {
+                                currentWorkerState = WorkerState.GoToBuild;
+                                targetIndex = 0;
                             }
                         }
                         break;
@@ -135,6 +156,22 @@ public class SkeletonWorker : MonoBehaviour
                         else
                         {
                             jobManager.JobBecomeFree(job, 1);
+                        }
+                        break;
+                        case JobType.Deconstruct:
+                        currentDecunstructBuilding = job.building;
+                        if (currentDecunstructBuilding == null) return;
+                        currentPath = pathfinder.FindPath(transform.position, currentDecunstructBuilding.transform.position);
+                        if (currentPath != null)
+                        {
+                            targetIndex = 0;
+                            currentWorkerState= WorkerState.GoToDecunstructBuilding;
+                        }
+                        else
+                        {
+                            Debug.Log("Пути к постройке которую надо разрушить на данный момент нет!");
+                            jobManager.JobBecomeFree(job, 1);
+                            currentWorkerState = WorkerState.Idle;
                         }
                         break;
                 }
@@ -179,7 +216,6 @@ public class SkeletonWorker : MonoBehaviour
                 {
                     if (currentBuildingTask != null)
                     {
-                        dropOnGround.transform.SetParent(transform);
                         currentPath = pathfinder.FindPath(transform.position, currentBuildingTask.transform.position);
                         if (currentPath == null)
                         {
@@ -190,52 +226,111 @@ public class SkeletonWorker : MonoBehaviour
                             currentBuildingTask = null;
                             return;
                         }
-                        targetIndex = 0;
-                        currentWorkerState = WorkerState.TowardResourceToBuild;
-                        jobManager.RemoveHaulJob(dropOnGround);
+                        else if (currentPath != null)
+                        {
+                            dropOnGround.transform.SetParent(transform);
+                            targetIndex = 0;
+                            currentWorkerState = WorkerState.TowardResourceToBuild;
+                            jobManager.RemoveHaulJob(dropOnGround);
+                        }
                     }
                     else
                     {
-                        dropOnGround.transform.SetParent(transform);
                         currentPath = pathfinder.FindPath(transform.position, dungeonCore.transform.position);
-                        if(currentPath == null)
+                        if (currentPath == null)
                         {
+                            currentWorkerState = WorkerState.Idle;
                             dropOnGround.transform.SetParent(null);
                             jobManager.AddHaulJob(dropOnGround);
                             jobManager.JobBecomeFree(job, 1);
-                            currentWorkerState = WorkerState.Idle;
                             return;
                         }
-                        jobManager.RemoveHaulJob(dropOnGround);
-                        targetIndex = 0;
-                        currentWorkerState = WorkerState.TransferResourceToStorage;
+                        else if (currentPath != null)
+                        {
+                            dropOnGround.transform.SetParent(transform);
+                            targetIndex = 0;
+                            jobManager.RemoveHaulJob(dropOnGround);
+                            currentWorkerState = WorkerState.TransferResourceToStorage;
+
+                        }
                     }
+
                 }
                 break;
             case WorkerState.TransferResourceToStorage:
                 if (MoveToTarget(stopDistance))
                 {
                     dungeonCore.AddBone();
-                    jobManager.RemoveHaulJob(dropOnGround);
                     Destroy(dropOnGround.gameObject);
                     currentWorkerState = WorkerState.Idle;
                 }
                 break;
             case WorkerState.TowardResourceToBuild:
-                if (MoveToTarget(stopDistance))
+                if (currentBuildingTask != null)
                 {
-                    currentBuildingTask.AddResource(dropOnGround.resourceData);
+                    if (MoveToTarget(stopDistance))
+                    {
+                        if (currentBuildingTask != null)
+                        {
+                            currentBuildingTask.AddResource(dropOnGround.resourceData);
+                            Destroy(dropOnGround.gameObject);
+                            currentBuildingTask = null;
+                            jobManager.JobBecomeFree(job, 1);
+                            currentWorkerState = WorkerState.Idle;
+                        }
+                        else
+                        {
 
-                    Destroy(dropOnGround.gameObject);
-                    jobManager.RemoveHaulJob(dropOnGround);
-                    currentBuildingTask = null;
-                    jobManager.JobBecomeFree(job, 1);
+                        }
+                    }
+                }
+                else
+                {
+                    dropOnGround.transform.SetParent(null);
+                    jobManager.AddHaulJob(dropOnGround);
                     currentWorkerState = WorkerState.Idle;
                 }
                 break;
-            case WorkerState.Building:
+            case WorkerState.GoToBuild:
+                if (MoveToTarget(stopDistance))
+                {
+                    currentWorkerState = WorkerState.Building;
+                }
                 break;
-            default:
+            case WorkerState.Building:
+                if (currentBuildingTask != null)
+                {
+                    currentBuildingTask.Construct(Time.deltaTime);
+                }
+                else
+                {
+                    currentWorkerState = WorkerState.Idle;
+                }
+                break;
+            case WorkerState.GoToDecunstructBuilding:
+                if(currentDecunstructBuilding != null)
+                {
+                    if (MoveToTarget(stopDistance))
+                    {
+                        currentWorkerState = WorkerState.DecunstructBuilding;
+                    }
+                }
+                else
+                {
+                    currentWorkerState = WorkerState.Idle;
+                }
+                break;
+            case WorkerState.DecunstructBuilding:
+                if(currentDecunstructBuilding != null)
+                {
+                    jobManager.RemoveDeconstruct(currentDecunstructBuilding);
+                    currentDecunstructBuilding.Deconstruct();
+                    currentWorkerState = WorkerState.Idle;
+                }
+                else
+                {
+                    currentWorkerState = WorkerState.Idle;
+                }
                 break;
         }
     }

@@ -18,3 +18,5 @@ MonoBehaviour:
   resourceCost:
   - count: 2
     resourceData: {fileID: 11400000, guid: a79f4e775a5598a4cbe122542054fef0, type: 2}
+  - count: 1
+    resourceData: {fileID: 11400000, guid: ceef3b40fdcb2a54cbf8d44ffcebb3bb, type: 2}

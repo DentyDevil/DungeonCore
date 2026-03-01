@@ -9,15 +9,15 @@ public class LootManager : MonoBehaviour
         if (resourceData == null) { Debug.Log("This tile dont drop anyfing"); return; }
         int chanceDropBones = Random.Range(1, 101);
 
-        if (chanceDropBones > 80)
-        {
             Vector3 worldCell = new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0);
 
-            GameObject spawnedBone = Instantiate(resourceData.prefab, worldCell, Quaternion.identity);
+            GameObject spawnedResource = Instantiate(resourceData.prefab, worldCell, Quaternion.identity);
 
-            WorldResource worldResource = spawnedBone.GetComponent<WorldResource>();
+            WorldResource worldResource = spawnedResource.GetComponent<WorldResource>();
 
             jobManager.AddHaulJob(worldResource);
+        if (chanceDropBones > 80)
+        {
         }
     }
 }

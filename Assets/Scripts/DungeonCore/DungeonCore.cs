@@ -9,18 +9,6 @@ public class DungeonCore : MonoBehaviour
     public GameObject spriteSkeletonPrefab;
     public TextMeshProUGUI boneCountText;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        UpdateUI();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     void UpdateUI()
     {
         boneCountText.text = "Bones: " + boneCount;
