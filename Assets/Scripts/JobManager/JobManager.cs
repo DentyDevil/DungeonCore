@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -265,6 +266,10 @@ public class JobManager : MonoBehaviour
         Job closestJob = null;
         int bestPriority = int.MaxValue;
         float minDistance = Mathf.Infinity;
+
+        var deadKeys = haulJobs.Keys.Where(k => k == null).ToList();
+        foreach (var key in deadKeys) haulJobs.Remove(key);
+
 
         foreach (var haulTask in haulJobs)
         {
