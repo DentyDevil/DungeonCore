@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+п»їusing System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 
@@ -12,13 +12,15 @@ public class SkeletonWorker : MonoBehaviour
     [SerializeField] int timeBetweenDigging = 4;
     public int WorkerTimeBetweenDigging { get { return timeBetweenDigging; } }
 
+    [SerializeField] JobManager jobManager;
+    public JobManager JobManager { get { return jobManager; } }
+    [SerializeField] Job job;
+    public Job Job { get { return job; } }
+
     [SerializeField] InputManager inputManager;
     [SerializeField] DungeonCore dungeonCore;
     [SerializeField] Pathfinding pathfinder;
-    [SerializeField] JobManager jobManager;
-    [SerializeField] Job job;
 
-    private float digTimer = 0f;
     private Vector3Int currentTargetToDigging;
     private WorldResource dropOnGround;
     public ConstructionSite currentBuildingTask;
@@ -34,7 +36,7 @@ public class SkeletonWorker : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if(currentState != null)
+        if (currentState != null)
         {
             currentState.Execute();
         }
@@ -50,8 +52,7 @@ public class SkeletonWorker : MonoBehaviour
                     currentTargetToDigging = job.position;
                     Vector3 targetWorldPos = new Vector3(currentTargetToDigging.x + 0.5f, currentTargetToDigging.y + 0.5f, 0);
 
-                    List<Node> path = pathfinder.FindPath(transform.position, currentTargetToDigging);
-                    path = pathfinder.FindPath(transform.position, targetWorldPos);
+                    List<Node> path = pathfinder.FindPath(transform.position, targetWorldPos);
 
                     if (path != null)
                     {
@@ -59,64 +60,13 @@ public class SkeletonWorker : MonoBehaviour
                     }
                     else
                     {
-                        Debug.Log("Сейчас это невозможно сделать. Задача переложена в режим ожидания");
+                        Debug.Log("РЎРµР№С‡Р°СЃ СЌС‚Рѕ РЅРµРІРѕР·РјРѕР¶РЅРѕ СЃРґРµР»Р°С‚СЊ. Р—Р°РґР°С‡Р° РїРµСЂРµР»РѕР¶РµРЅР° РІ СЂРµР¶РёРј РѕР¶РёРґР°РЅРёСЏ");
                         jobManager.JobBecomeFree(job, 1);
                     }
                     break;
                 case JobType.Build:
                     currentBuildingTask = job.constructionSite;
-                    if (!currentBuildingTask.isReadyToBuild)
-                    {
-                        foreach (var nedeedRes in currentBuildingTask.resourceCost)
-                        {
-                            var collected = currentBuildingTask.resourcesCollected.Find(r => r.resourceData == nedeedRes.resourceData);
-
-                            int collectedCount = 0;
-                            if (collected != null) collectedCount = collected.count;
-
-                            if (collectedCount < nedeedRes.count)
-                            {
-                                ResourceData resType = nedeedRes.resourceData;
-
-                                dropOnGround = jobManager.GetResourceForBuild(transform.position, resType);
-
-                                if (dropOnGround != null)
-                                {
-                                    List<Node> pathToDropForBuilding = pathfinder.FindPath(transform.position, dropOnGround.transform.position);
-                                    if (pathToDropForBuilding != null)
-                                    {
-                                        ChangeState(new MovingState(this, pathToDropForBuilding, new PickupState(this, dropOnGround, pathfinder, currentBuildingTask.transform, job, jobManager, new DeliverToBuildState(this, currentBuildingTask, dropOnGround, jobManager, job))));
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        Debug.Log("Путь не найден. Задача отложена.");
-                                        jobManager.JobBecomeFree(job, 1);
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.Log("Не нашли ресурс на полу.");
-                                    jobManager.JobBecomeFree(job, 1);
-                                }
-
-                            }
-                        }
-                    }
-                    else
-                    {
-                        List<Node> pathToBuilding = pathfinder.FindPath(transform.position, currentBuildingTask.transform.position);
-                        if (pathToBuilding == null)
-                        {
-                            Debug.Log("К стройке невозможно дойти");
-                            ChangeState(new IdleState(this));
-                            jobManager.JobBecomeFree(job, 1);
-                        }
-                        else
-                        {
-                            ChangeState(new MovingState(this, pathToBuilding, new BuildingState(this, currentBuildingTask)));
-                        }
-                    }
+                    ContinueBuildingWork();
                     break;
                 case JobType.Haul:
                     dropOnGround = job.worldResource;
@@ -126,35 +76,28 @@ public class SkeletonWorker : MonoBehaviour
 
                     if (pathToDrop != null)
                     {
-                        if (currentBuildingTask == null)
-                        {
-                            ChangeState(new MovingState(this, pathToDrop, new PickupState(this, dropOnGround, pathfinder, dungeonCore.transform, job, jobManager, new StoreResourceState(this, dropOnGround, dungeonCore))));
-                        }
-                        else
-                        {
-                            ChangeState(new MovingState(this, pathToDrop, new PickupState(this, dropOnGround, pathfinder, currentBuildingTask.transform, job, jobManager, new DeliverToBuildState(this, currentBuildingTask, dropOnGround, jobManager, job))));
-                        }
+                        ChangeState(new MovingState(this, pathToDrop, new PickupState(this, dropOnGround, pathfinder, dungeonCore.transform, job, jobManager, new StoreResourceState(this, dropOnGround, dungeonCore))));
                     }
                     else
                     {
                         jobManager.JobBecomeFree(job, 1);
                     }
                     break;
-                //case JobType.Deconstruct:
-                //    currentDecunstructBuilding = job.building;
-                //    if (currentDecunstructBuilding == null) return;
-                //    currentPath = pathfinder.FindPath(transform.position, currentDecunstructBuilding.transform.position);
-                //    if (currentPath != null)
-                //    {
-                //        currentWorkerState = WorkerBaseState.GoToDecunstructBuilding;
-                //    }
-                //    else
-                //    {
-                //        Debug.Log("Пути к постройке которую надо разрушить на данный момент нет!");
-                //        jobManager.JobBecomeFree(job, 1);
-                //        currentWorkerState = WorkerBaseState.Idle;
-                //    }
-                //    break;
+                    //case JobType.Deconstruct:
+                    //    currentDecunstructBuilding = job.building;
+                    //    if (currentDecunstructBuilding == null) return;
+                    //    currentPath = pathfinder.FindPath(transform.position, currentDecunstructBuilding.transform.position);
+                    //    if (currentPath != null)
+                    //    {
+                    //        currentWorkerState = WorkerBaseState.GoToDecunstructBuilding;
+                    //    }
+                    //    else
+                    //    {
+                    //        Debug.Log("РџСѓС‚Рё Рє РїРѕСЃС‚СЂРѕР№РєРµ РєРѕС‚РѕСЂСѓСЋ РЅР°РґРѕ СЂР°Р·СЂСѓС€РёС‚СЊ РЅР° РґР°РЅРЅС‹Р№ РјРѕРјРµРЅС‚ РЅРµС‚!");
+                    //        jobManager.JobBecomeFree(job, 1);
+                    //        currentWorkerState = WorkerBaseState.Idle;
+                    //    }
+                    //    break;
             }
         }
 
@@ -164,5 +107,65 @@ public class SkeletonWorker : MonoBehaviour
         if (currentState != null) currentState.Exit();
         currentState = newState;
         newState.Enter();
+    }
+    public void ContinueBuildingWork()
+    {
+        List<ResourceData> neededRes = currentBuildingTask.GetNextAllRequiredResource();
+
+        if (neededRes != null)
+        {
+            dropOnGround = jobManager.GetResourceForBuild(transform.position, neededRes);
+
+            if (dropOnGround != null)
+            {
+                List<Node> pathToDropForBuilding = pathfinder.FindPath(transform.position, dropOnGround.transform.position);
+                if (pathToDropForBuilding != null)
+                {
+                    currentBuildingTask.AddIncomingResource(dropOnGround.resourceData);
+                    ChangeState(new MovingState(this, pathToDropForBuilding, new PickupState(this, dropOnGround, pathfinder, currentBuildingTask.transform, job, jobManager, new DeliverToBuildState(this, currentBuildingTask, dropOnGround, jobManager, job))));
+                }
+                else
+                {
+                    Debug.Log("РџСѓС‚СЊ РЅРµ РЅР°Р№РґРµРЅ. Р—Р°РґР°С‡Р° РѕС‚Р»РѕР¶РµРЅР°.");
+                    currentBuildingTask = null;
+                    ChangeState(new IdleState(this));
+                    jobManager.JobBecomeFree(job, 1);
+                    if (jobManager.haulJobs.ContainsKey(dropOnGround)) jobManager.JobBecomeFree(jobManager.haulJobs[dropOnGround], 1);
+                    dropOnGround = null;
+                }
+            }
+            else if (dropOnGround == null)
+            {
+                Debug.Log("РќРµ РЅР°С€Р»Рё СЂРµСЃСѓСЂСЃ РЅР° РїРѕР»Сѓ.");
+                currentBuildingTask = null;
+                ChangeState(new IdleState(this));
+                jobManager.JobBecomeFree(job, 1);
+            }
+        }
+        else
+        {
+            if (currentBuildingTask.isReadyToBuild)
+            {
+                List<Node> pathToBuilding = pathfinder.FindPath(transform.position, currentBuildingTask.transform.position);
+                if (pathToBuilding == null)
+                {
+                    Debug.Log("Рљ СЃС‚СЂРѕР№РєРµ РЅРµРІРѕР·РјРѕР¶РЅРѕ РґРѕР№С‚Рё");
+                    currentBuildingTask = null;
+                    ChangeState(new IdleState(this));
+                    jobManager.JobBecomeFree(job, 1);
+                }
+                else
+                {
+                    ChangeState(new MovingState(this, pathToBuilding, new BuildingState(this, currentBuildingTask)));
+                }
+            }
+            else
+            {
+                dropOnGround = null;
+                currentBuildingTask = null;
+                jobManager.JobBecomeFree(job, 1);
+                ChangeState(new IdleState(this));
+            }
+        }
     }
 }

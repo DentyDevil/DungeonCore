@@ -18,11 +18,16 @@ public class DeliverToBuildState : WorkerState
     {
         if (building != null && resourceForBuilding != null)
         {
+            building.RemoveIncomingResource(resourceForBuilding.resourceData);
             building.AddResource(resourceForBuilding.resourceData);
             Object.Destroy(resourceForBuilding.gameObject);
-            jobManager.JobBecomeFree(job, 1);
+            worker.ContinueBuildingWork();
         }
-        worker.ChangeState(new IdleState(worker));
+        else
+        {
+            jobManager.JobBecomeFree(job, 1);
+            worker.ChangeState(new IdleState(worker));
+        }
     }
 
     public override void Execute()

@@ -8,6 +8,7 @@ public class JobManager : MonoBehaviour
     [SerializeField] private PathfindingGrid pathfindingGrid;
     [SerializeField] public Tilemap highlight;
     [SerializeField] private DungeonCore dungeonCore;
+    [SerializeField] private Pathfinding pathfinding;
     public Dictionary<Vector3Int, Job> digJobs = new Dictionary<Vector3Int, Job>();
     public Dictionary<Vector3Int, Job> buildJobs = new Dictionary<Vector3Int, Job>();
     public Dictionary<WorldResource, Job> haulJobs = new Dictionary<WorldResource, Job>();
@@ -144,15 +145,17 @@ public class JobManager : MonoBehaviour
         return closestJob;
     }
 
-    public WorldResource GetResourceForBuild(Vector3 unitPostion, ResourceData resType)
+    public WorldResource GetResourceForBuild(Vector3 unitPostion, List<ResourceData> resourceDatas)
     {
+        CleanupHaulJobs();
+
         float minDistance = Mathf.Infinity;
         WorldResource closestResource = null;
         Job closestJob = null;
 
         foreach (var haulTask in haulJobs)
         {
-            if(haulTask.Value.worldResource.resourceData != resType) continue;
+            if(resourceDatas.Contains(haulTask.Key.resourceData) == false) continue;
             if (haulTask.Value.workersInWork >= 1) continue;
 
             float distance = Vector3.Distance(unitPostion, haulTask.Value.worldResource.transform.position);
@@ -175,8 +178,9 @@ public class JobManager : MonoBehaviour
 
         foreach (var buildTask in buildJobs)
         {
-            if (buildTask.Value.workersInWork >= buildTask.Value.constructionSite.maxWorkers) continue;
+            if (buildTask.Value.workersInWork >= 1) continue;
             if(!HasResourcesForBuild(buildTask.Value.constructionSite) && !buildTask.Value.constructionSite.isReadyToBuild) continue;
+            if (pathfinding.FindPath(unitPosition, buildTask.Value.position) == null) continue;
 
             Vector3 jobPos = buildTask.Key;
 
@@ -211,6 +215,7 @@ public class JobManager : MonoBehaviour
         foreach (var digTask in digJobs)
         {
             if (digTask.Value.workersInWork >= 1) continue;
+            if (pathfinding.FindPath(unitPosition, digTask.Value.position) == null) continue;
 
             Vector3 taskWorldPos = new Vector3(digTask.Key.x + 0.5f, digTask.Key.y + 0.5f, 0);
 
@@ -263,17 +268,15 @@ public class JobManager : MonoBehaviour
 
     (Job BestJob, float ClosestDistance) TryGetHaulJob(Vector3 unitPosition)
     {
+        CleanupHaulJobs();
         Job closestJob = null;
         int bestPriority = int.MaxValue;
         float minDistance = Mathf.Infinity;
 
-        var deadKeys = haulJobs.Keys.Where(k => k == null).ToList();
-        foreach (var key in deadKeys) haulJobs.Remove(key);
-
-
         foreach (var haulTask in haulJobs)
         {
             if (haulTask.Value.workersInWork >= 1) continue;
+            if (pathfinding.FindPath(unitPosition, haulTask.Value.position) == null) continue;
             float distance = Vector3.Distance(unitPosition, haulTask.Value.worldResource.transform.position);
             if (haulTask.Value.workPriority < bestPriority)
             {
@@ -324,6 +327,7 @@ public class JobManager : MonoBehaviour
 
     bool HasResourcesForBuild (ConstructionSite site)
     {
+        CleanupHaulJobs();
         foreach (var neededRes in site.resourceCost)
         {
             var collected = site.resourcesCollected.Find(r => r.resourceData == neededRes.resourceData);
@@ -350,5 +354,11 @@ public class JobManager : MonoBehaviour
     public void ClearHighlight(Vector3Int position)
     {
         highlight.SetTile(position, null);
+    }
+
+    private void CleanupHaulJobs()
+    {
+        var deadKeys = haulJobs.Keys.Where(k => k == null).ToList();
+        foreach (var key in deadKeys) haulJobs.Remove(key);
     }
 }

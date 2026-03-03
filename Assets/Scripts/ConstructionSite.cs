@@ -10,6 +10,7 @@ public class ConstructionSite : MonoBehaviour
 
     [SerializeField] public List<ResourceCost> resourceCost = new List<ResourceCost>();
     [SerializeField] public List<ResourceCost> resourcesCollected = new List<ResourceCost>();
+    public Dictionary<ResourceData, int> incomingResources = new Dictionary<ResourceData, int>();
     [SerializeField] public int maxWorkers = 1;
     [SerializeField] public bool isReadyToBuild = false;
 
@@ -99,5 +100,50 @@ public class ConstructionSite : MonoBehaviour
         }
         JobManager.RemoveBuildJob(this);
         Destroy(gameObject);
+    }
+
+    public int GetTotalResourceCount(ResourceData resourceType)
+    {
+        int total = 0;
+
+        var collected = resourcesCollected.Find(r => r.resourceData == resourceType);
+
+        if(collected != null) total += collected.count;
+
+        if (incomingResources.ContainsKey(resourceType)) total += incomingResources[resourceType];
+
+        return total;
+    }
+
+    public void AddIncomingResource(ResourceData resourceData)
+    {
+        if (incomingResources.ContainsKey(resourceData)) incomingResources[resourceData]++;
+        else incomingResources.Add(resourceData, 1);
+    }
+    public void RemoveIncomingResource(ResourceData resourceData)
+    {
+        if(resourceData == null) return;
+        if (incomingResources.ContainsKey(resourceData))
+        {
+            incomingResources[resourceData]--;
+            if(incomingResources[resourceData] <= 0) incomingResources.Remove(resourceData);
+        }
+    }
+
+    public List<ResourceData> GetNextAllRequiredResource()
+    {
+        List<ResourceData> resources = new List<ResourceData>();
+        foreach (var neededRes in resourceCost)
+        {
+            if (GetTotalResourceCount(neededRes.resourceData) < neededRes.count)
+            {
+                resources.Add(neededRes.resourceData);
+            }
+        }
+        if (resources.Count > 0)
+        {
+            return resources;
+        }
+        else return null;
     }
 }

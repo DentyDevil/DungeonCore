@@ -1,16 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class MovingState : WorkerState
 {
     private List<Node> path;
     private WorkerState stateAfterMoving;
     private int targetIndex;
+    private Job job;
+    private JobManager jobManager;
+    Transform target;
     public MovingState(SkeletonWorker worker, List<Node> _path, WorkerState nextState) : base(worker)
     {
         path = _path;
         stateAfterMoving = nextState;
+        job = worker.Job;
+        jobManager = worker.JobManager;
     }
 
     public override void Enter()
@@ -20,6 +24,34 @@ public class MovingState : WorkerState
 
     public override void Execute()
     {
+        if (job.jobType == JobType.Haul)
+        {
+            if(job.worldResource == null) 
+            {
+                jobManager.JobBecomeFree(job, 1);
+                worker.ChangeState(new IdleState(worker));
+                return;
+            }
+        }
+        if(job.jobType == JobType.Build)
+        {
+            if(job.constructionSite == null)
+            {
+                jobManager.JobBecomeFree(job, 1);
+                worker.ChangeState(new IdleState(worker));
+                return;
+            }
+        }
+        if(job.jobType == JobType.Dig)
+        {
+            if (!jobManager.digJobs.ContainsKey(job.position))
+            {
+                jobManager.JobBecomeFree(job, 1);
+                worker.ChangeState(new IdleState(worker));
+                return;
+            }
+        }
+
         if (MoveToTarget(1))
         {
             worker.ChangeState(stateAfterMoving);
