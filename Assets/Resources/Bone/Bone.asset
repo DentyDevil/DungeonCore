@@ -15,3 +15,4 @@ MonoBehaviour:
   displayName: Bone
   icon: {fileID: 7553835203902197830, guid: 7798feb8a299e6e488fe08551defb8b3, type: 3}
   prefab: {fileID: 175165565658167204, guid: e14f1ad694dacc645b93e9badc51b04c, type: 3}
+  isAllowedToHaul: 1

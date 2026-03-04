@@ -1,13 +1,24 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Building : MonoBehaviour
 {
     public List<ResourceCost> recipe = new List<ResourceCost>();
     [SerializeField] public JobManager jobManager;
+    float timer = 0;
+    float timeToDestroy = 5f;
 
-    public void Deconstruct()
+    public bool Deconstruct()
+    {
+        if (TakeDeconstructWork(timeToDestroy))
+        {
+            ReturneResource();
+            return true;
+        }
+        return false;
+    }
+
+    void ReturneResource()
     {
         foreach (ResourceCost returneResource in recipe)
         {
@@ -23,6 +34,16 @@ public class Building : MonoBehaviour
         Vector3Int cell = Vector3Int.FloorToInt(transform.position);
         cell.z = 0;
         jobManager.ClearHighlight(cell);
+        jobManager.RemoveDeconstruct(this);
         Destroy(gameObject);
+    }
+    bool TakeDeconstructWork(float _timeToDestroy)
+    {
+        timer += Time.deltaTime;
+        if( timer >= _timeToDestroy)
+        {
+            return true;
+        }
+        return false;
     }
 }

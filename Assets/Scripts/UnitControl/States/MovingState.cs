@@ -8,7 +8,6 @@ public class MovingState : WorkerState
     private int targetIndex;
     private Job job;
     private JobManager jobManager;
-    Transform target;
     public MovingState(SkeletonWorker worker, List<Node> _path, WorkerState nextState) : base(worker)
     {
         path = _path;
@@ -24,32 +23,43 @@ public class MovingState : WorkerState
 
     public override void Execute()
     {
-        if (job.jobType == JobType.Haul)
+        switch (job.jobType)
         {
-            if(job.worldResource == null) 
-            {
-                jobManager.JobBecomeFree(job, 1);
-                worker.ChangeState(new IdleState(worker));
-                return;
-            }
-        }
-        if(job.jobType == JobType.Build)
-        {
-            if(job.constructionSite == null)
-            {
-                jobManager.JobBecomeFree(job, 1);
-                worker.ChangeState(new IdleState(worker));
-                return;
-            }
-        }
-        if(job.jobType == JobType.Dig)
-        {
-            if (!jobManager.digJobs.ContainsKey(job.position))
-            {
-                jobManager.JobBecomeFree(job, 1);
-                worker.ChangeState(new IdleState(worker));
-                return;
-            }
+            case JobType.Dig:
+                if (!jobManager.digJobs.queue.HasJobAt(job.position))
+                {
+                    jobManager.JobBecomeFree(job, 1);
+                    worker.ChangeState(new IdleState(worker));
+                    return;
+                }
+                break;
+            case JobType.Build:
+                if (job.constructionSite == null)
+                {
+                    jobManager.JobBecomeFree(job, 1);
+                    worker.DropResource();
+                    worker.ChangeState(new IdleState(worker));
+                    return;
+                }
+                break;
+            case JobType.Haul:
+                if (job.worldResource == null)
+                {
+                    jobManager.JobBecomeFree(job, 1);
+                    worker.ChangeState(new IdleState(worker));
+                    return;
+                }
+                break;
+            case JobType.Deconstruct:
+                if(job.building == null)
+                {
+                    jobManager.JobBecomeFree(job, 1);
+                    worker.ChangeState(new IdleState(worker));
+                    return;
+                }
+                break;
+            default:
+                break;
         }
 
         if (MoveToTarget(1))

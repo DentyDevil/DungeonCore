@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -9,10 +10,6 @@ public class JobManager : MonoBehaviour
     [SerializeField] public Tilemap highlight;
     [SerializeField] private DungeonCore dungeonCore;
     [SerializeField] private Pathfinding pathfinding;
-    public Dictionary<Vector3Int, Job> digJobs = new Dictionary<Vector3Int, Job>();
-    public Dictionary<Vector3Int, Job> buildJobs = new Dictionary<Vector3Int, Job>();
-    public Dictionary<WorldResource, Job> haulJobs = new Dictionary<WorldResource, Job>();
-    public Dictionary<Vector3Int, Job> deconstructJobs = new Dictionary<Vector3Int, Job>();
     public Dictionary<Vector3Int, Building> buildings = new Dictionary<Vector3Int, Building>();
     public HashSet<Vector3Int> unreachebleTasks = new HashSet<Vector3Int>();
 
@@ -22,16 +19,28 @@ public class JobManager : MonoBehaviour
     public int priorityHaulTask = 3;
     public int priorityDeconstructTask = 3;
 
+    public HaulJobQueueMB haulJobs;
+    public DigJobQueueMB digJobs;
+    public BuildJobQueueMB buildJobs;
+    public DeconstructJobQueueMB deconstructJobs;
+
     //Методы для работы с копанием
     public void AddDigJob(Vector3Int cellPos)
     {
         var job = new Job(JobType.Dig, cellPos);
-        digJobs.TryAdd(cellPos, job);
+        digJobs.queue.Add(job);
     }
     public void RemoveDigJob(Vector3Int cellPos)
     {
-        digJobs.Remove(cellPos);
-        unreachebleTasks.Remove(cellPos);
+        foreach (Job deleteDigJob in digJobs.queue.GetJobs())
+        {
+            if (deleteDigJob.position == cellPos)
+            {
+                digJobs.queue.Remove(deleteDigJob);
+                break;
+            }
+        }
+            unreachebleTasks.Remove(cellPos);
     }
     public void JobBecomeFree(Job job, int workers)
     {
@@ -52,15 +61,18 @@ public class JobManager : MonoBehaviour
     public void AddBuildJob(ConstructionSite constructionSite)
     {
         var job = new Job(JobType.Build, constructionSite, 2);
-
-        Vector3Int position = Vector3Int.FloorToInt(constructionSite.transform.position);
-
-        buildJobs.TryAdd(position, job);
+        buildJobs.queue.Add(job);
     }
     public void RemoveBuildJob(ConstructionSite constructionSite)
     {
-        Vector3Int position = Vector3Int.FloorToInt(constructionSite.transform.position);
-        buildJobs.Remove(position);
+        foreach (Job deleteBuildJob in buildJobs.queue.GetJobs())
+        {
+            if (deleteBuildJob.constructionSite == constructionSite)
+            {
+                buildJobs.queue.Remove(deleteBuildJob);
+                break;
+            }
+        }
     }
 
     //Методы работы с переноской ресурсов
@@ -68,24 +80,26 @@ public class JobManager : MonoBehaviour
     public void AddHaulJob(WorldResource drop)
     {
         var job = new Job(JobType.Haul, drop);
-        haulJobs.TryAdd(drop, job);
-    }
-    public void RemoveHaulJob(WorldResource drop)
-    {
-        haulJobs.Remove(drop);
+        haulJobs.queue.Add(job);
+        
     }
 
     //Методы работы с разбором зданий
     public void AddDeconstructJob(Building building)
     {
         var job = new Job(JobType.Deconstruct, building);
-
-        deconstructJobs.TryAdd(job.position, job);
+        deconstructJobs.queue.Add(job);
     }
     public void RemoveDeconstruct(Building building)
     {
-        Vector3Int position = Vector3Int.FloorToInt(building.transform.position);
-        deconstructJobs.Remove(position);
+        foreach (Job deleteDeconstructdJob in deconstructJobs.queue.GetJobs())
+        {
+            if (deleteDeconstructdJob.building == building)
+            {
+                deconstructJobs.queue.Remove(deleteDeconstructdJob);
+                break;
+            }
+        }
     }
     //Методы добавления зданий в список зданий
     public void AddBuilding(Building building)
@@ -145,29 +159,27 @@ public class JobManager : MonoBehaviour
         return closestJob;
     }
 
-    public WorldResource GetResourceForBuild(Vector3 unitPostion, List<ResourceData> resourceDatas)
+    public Job GetResourceForBuild(Vector3 unitPostion, List<ResourceData> resourceDatas)
     {
-        CleanupHaulJobs();
-
+        Job haulJob = null;
         float minDistance = Mathf.Infinity;
-        WorldResource closestResource = null;
         Job closestJob = null;
 
-        foreach (var haulTask in haulJobs)
+        foreach (var haulTask in haulJobs.queue.GetJobs())
         {
-            if(resourceDatas.Contains(haulTask.Key.resourceData) == false) continue;
-            if (haulTask.Value.workersInWork >= 1) continue;
+            if(resourceDatas.Contains(haulTask.worldResource.resourceData) == false) continue;
+            if (haulTask.workersInWork >= 1) continue;
 
-            float distance = Vector3.Distance(unitPostion, haulTask.Value.worldResource.transform.position);
+            float distance = Vector3.Distance(unitPostion, haulTask.worldResource.transform.position);
             if(distance < minDistance)
             {
                 minDistance = distance;
-                closestResource = haulTask.Value.worldResource;
-                closestJob = haulTask.Value;
+                haulJob = haulTask;
+                closestJob = haulTask;
             }
         }
         if (closestJob != null) closestJob.workersInWork++;
-        return closestResource;
+        return haulJob;
     }
 
     (Job BestJob, float ClosestDistance) TryGetBuildJob(Vector3 unitPosition)
@@ -176,27 +188,27 @@ public class JobManager : MonoBehaviour
         int bestPriority = int.MaxValue;
         float minDistance = Mathf.Infinity;
 
-        foreach (var buildTask in buildJobs)
+        foreach (var buildTask in buildJobs.queue.GetJobs())
         {
-            if (buildTask.Value.workersInWork >= 1) continue;
-            if(!HasResourcesForBuild(buildTask.Value.constructionSite) && !buildTask.Value.constructionSite.isReadyToBuild) continue;
-            if (pathfinding.FindPath(unitPosition, buildTask.Value.position) == null) continue;
+            if (buildTask.workersInWork >= 1) continue;
+            if(!HasResourcesForBuild(buildTask.constructionSite) && !buildTask.constructionSite.isReadyToBuild) continue;
+            if (pathfinding.FindPath(unitPosition, buildTask.position) == null) continue;
 
-            Vector3 jobPos = buildTask.Key;
+            Vector3 jobPos = buildTask.position;
 
             float distance = Vector3.Distance(unitPosition, jobPos);
 
-            if (buildTask.Value.workPriority < bestPriority)
+            if (buildTask.workPriority < bestPriority)
             {
-                bestPriority = buildTask.Value.workPriority;
+                bestPriority = buildTask.workPriority;
                 minDistance = distance;
-                closestJob = buildTask.Value;
+                closestJob = buildTask;
             }
-            else if (buildTask.Value.workPriority == bestPriority)
+            else if (buildTask.workPriority == bestPriority)
             {
                 if (distance < minDistance)
                 {
-                    closestJob = buildTask.Value;
+                    closestJob = buildTask;
                     minDistance = distance;
                 }
             }
@@ -210,14 +222,14 @@ public class JobManager : MonoBehaviour
         int bestPriority = int.MaxValue;
         float minDistance = Mathf.Infinity;
 
-        List<Vector3Int> taskToDelay = new List<Vector3Int>();
+        List<Job> taskToDelay = new List<Job>();
 
-        foreach (var digTask in digJobs)
+        foreach (var digTask in digJobs.queue.GetJobs())
         {
-            if (digTask.Value.workersInWork >= 1) continue;
-            if (pathfinding.FindPath(unitPosition, digTask.Value.position) == null) continue;
+            if (digTask.workersInWork >= 1) continue;
+            if (pathfinding.FindPath(unitPosition, digTask.position) == null) continue;
 
-            Vector3 taskWorldPos = new Vector3(digTask.Key.x + 0.5f, digTask.Key.y + 0.5f, 0);
+            Vector3 taskWorldPos = new Vector3(digTask.position.x + 0.5f, digTask.position.y + 0.5f, 0);
 
             Node taskNode = pathfindingGrid.NodeFromWorldPoint(taskWorldPos);
 
@@ -234,33 +246,33 @@ public class JobManager : MonoBehaviour
 
             if (!isReachable)
             {
-                taskToDelay.Add(digTask.Key);
+                taskToDelay.Add(digTask);
             }
             float distance = Vector3.Distance(unitPosition, taskWorldPos);
 
             if (isReachable == false) continue;
 
-            if (digTask.Value.workPriority < bestPriority)
+            if (digTask.workPriority < bestPriority)
             {
-                bestPriority = digTask.Value.workPriority;
+                bestPriority = digTask.workPriority;
                 minDistance = distance;
-                closestJob = digTask.Value;
+                closestJob = digTask;
             }
-            else if (digTask.Value.workPriority == bestPriority)
+            else if (digTask.workPriority == bestPriority)
             {
                 if (distance < minDistance)
                 {
-                    closestJob = digTask.Value;
+                    closestJob = digTask;
                     minDistance = distance;
                 }
             }
 
 
         }
-        foreach (Vector3Int _taskToDelay in taskToDelay)
+        foreach (Job _taskToDelay in taskToDelay)
         {
-            unreachebleTasks.Add(_taskToDelay);
-            digJobs.Remove(_taskToDelay);
+            unreachebleTasks.Add(_taskToDelay.position);
+            digJobs.queue.Remove(_taskToDelay);
         }
 
         return (closestJob, minDistance);
@@ -268,32 +280,11 @@ public class JobManager : MonoBehaviour
 
     (Job BestJob, float ClosestDistance) TryGetHaulJob(Vector3 unitPosition)
     {
-        CleanupHaulJobs();
-        Job closestJob = null;
-        int bestPriority = int.MaxValue;
-        float minDistance = Mathf.Infinity;
+        float distance = Mathf.Infinity;
+        Job bestJob = null;
+        haulJobs.queue.TryGetBestFor(unitPosition, out distance, out bestJob);
 
-        foreach (var haulTask in haulJobs)
-        {
-            if (haulTask.Value.workersInWork >= 1) continue;
-            if (pathfinding.FindPath(unitPosition, haulTask.Value.position) == null) continue;
-            float distance = Vector3.Distance(unitPosition, haulTask.Value.worldResource.transform.position);
-            if (haulTask.Value.workPriority < bestPriority)
-            {
-                bestPriority = haulTask.Value.workPriority;
-                minDistance = distance;
-                closestJob = haulTask.Value;
-            }
-            else if (haulTask.Value.workPriority == bestPriority)
-            {
-                if (distance < minDistance)
-                {
-                    closestJob = haulTask.Value;
-                    minDistance = distance;
-                }
-            }
-        }
-        return (closestJob, minDistance);
+        return (bestJob, distance);
     }
 
     (Job BestJob, float bestDistance) TryGetDeconstructionJob(Vector3 unitPosition)
@@ -302,21 +293,21 @@ public class JobManager : MonoBehaviour
         int bestPriority = int.MaxValue;
         float minDistance = Mathf.Infinity;
 
-        foreach(var deconstructionTask in deconstructJobs)
+        foreach(var deconstructionTask in deconstructJobs.queue.GetJobs())
         {
-            if(deconstructionTask.Value.workersInWork >= 1) continue;
-            float distance = Vector3.Distance(unitPosition, deconstructionTask.Value.building.transform.position);
-            if(deconstructionTask.Value.workPriority < bestPriority)
+            if(deconstructionTask.workersInWork >= 1) continue;
+            float distance = Vector3.Distance(unitPosition, deconstructionTask.building.transform.position);
+            if(deconstructionTask.workPriority < bestPriority)
             {
-                bestPriority=deconstructionTask.Value.workPriority;
+                bestPriority=deconstructionTask.workPriority;
                 minDistance = distance;
-                closestJob = deconstructionTask.Value;
+                closestJob = deconstructionTask;
             }
-            else if(deconstructionTask.Value.workPriority == bestPriority)
+            else if(deconstructionTask.workPriority == bestPriority)
             {
                 if (distance < minDistance)
                 {
-                    closestJob = deconstructionTask.Value;
+                    closestJob = deconstructionTask;
                     minDistance = distance;
                 }
             }
@@ -327,7 +318,6 @@ public class JobManager : MonoBehaviour
 
     bool HasResourcesForBuild (ConstructionSite site)
     {
-        CleanupHaulJobs();
         foreach (var neededRes in site.resourceCost)
         {
             var collected = site.resourcesCollected.Find(r => r.resourceData == neededRes.resourceData);
@@ -337,10 +327,10 @@ public class JobManager : MonoBehaviour
 
             if (collectedCount < neededRes.count)
             {
-                foreach (var freeRes in haulJobs)
+                foreach (var freeRes in haulJobs.queue.GetJobs())
                 {
-                    if (freeRes.Value.workersInWork >= 1) continue;
-                    if (freeRes.Key.resourceData == neededRes.resourceData)
+                    if (freeRes.workersInWork >= 1) continue;
+                    if (freeRes.worldResource.resourceData == neededRes.resourceData)
                     {
                         return true;
                     }
@@ -354,11 +344,5 @@ public class JobManager : MonoBehaviour
     public void ClearHighlight(Vector3Int position)
     {
         highlight.SetTile(position, null);
-    }
-
-    private void CleanupHaulJobs()
-    {
-        var deadKeys = haulJobs.Keys.Where(k => k == null).ToList();
-        foreach (var key in deadKeys) haulJobs.Remove(key);
     }
 }

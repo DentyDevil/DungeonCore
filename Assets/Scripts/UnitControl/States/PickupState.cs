@@ -28,7 +28,7 @@ public class PickupState : WorkerState
             if (path != null)
             {
                 drop.transform.SetParent(worker.transform);
-                jobManager.RemoveHaulJob(drop);
+                jobManager.haulJobs.queue.Remove(job);
                 worker.ChangeState(new MovingState(worker, path, nextStateAfterPickUp));
             }
             else

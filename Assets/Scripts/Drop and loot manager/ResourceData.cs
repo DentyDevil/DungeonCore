@@ -7,4 +7,5 @@ public class ResourceData : ScriptableObject
     public string displayName;
     public Sprite icon;
     public GameObject prefab;
+    public bool isAllowedToHaul = false;
 }

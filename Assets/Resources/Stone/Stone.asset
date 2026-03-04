@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfa9a5a9a893fed4e8f134781e4818b5, type: 3}
   m_Name: Stone
   m_EditorClassIdentifier: Assembly-CSharp::ResourceData
-  displayName: 
+  displayName: Stone
   icon: {fileID: 105707696123083500, guid: 07318eb5f45948149aa4789cb11c1005, type: 3}
   prefab: {fileID: 7889515620929727772, guid: 7c2d4298cb3b0854c8952152a46ef905, type: 3}
+  isAllowedToHaul: 1

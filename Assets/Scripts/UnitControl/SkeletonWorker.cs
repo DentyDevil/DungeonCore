@@ -23,6 +23,7 @@ public class SkeletonWorker : MonoBehaviour
 
     private Vector3Int currentTargetToDigging;
     private WorldResource dropOnGround;
+    private Job currentResourceJob;
     public ConstructionSite currentBuildingTask;
     public Building currentDecunstructBuilding;
     private Rigidbody2D rb;
@@ -83,21 +84,21 @@ public class SkeletonWorker : MonoBehaviour
                         jobManager.JobBecomeFree(job, 1);
                     }
                     break;
-                    //case JobType.Deconstruct:
-                    //    currentDecunstructBuilding = job.building;
-                    //    if (currentDecunstructBuilding == null) return;
-                    //    currentPath = pathfinder.FindPath(transform.position, currentDecunstructBuilding.transform.position);
-                    //    if (currentPath != null)
-                    //    {
-                    //        currentWorkerState = WorkerBaseState.GoToDecunstructBuilding;
-                    //    }
-                    //    else
-                    //    {
-                    //        Debug.Log("Пути к постройке которую надо разрушить на данный момент нет!");
-                    //        jobManager.JobBecomeFree(job, 1);
-                    //        currentWorkerState = WorkerBaseState.Idle;
-                    //    }
-                    //    break;
+                case JobType.Deconstruct:
+                    currentDecunstructBuilding = job.building;
+                    if (currentDecunstructBuilding == null) return;
+                    List<Node> pathToDeconcsruct = pathfinder.FindPath(transform.position, currentDecunstructBuilding.transform.position);
+                    if (pathToDeconcsruct != null)
+                    {
+                        ChangeState(new MovingState(this, pathToDeconcsruct, new DeconstructionState(this, currentDecunstructBuilding)));
+                    }
+                    else
+                    {
+                        Debug.Log("Пути к постройке которую надо разрушить на данный момент нет!");
+                        jobManager.JobBecomeFree(job, 1);
+                        ChangeState(new IdleState(this));
+                    }
+                    break;
             }
         }
 
@@ -110,14 +111,15 @@ public class SkeletonWorker : MonoBehaviour
     }
     public void ContinueBuildingWork()
     {
+        if (currentBuildingTask == null) { DropResource(); ChangeState(new IdleState(this)); return; }
         List<ResourceData> neededRes = currentBuildingTask.GetNextAllRequiredResource();
-
         if (neededRes != null)
         {
-            dropOnGround = jobManager.GetResourceForBuild(transform.position, neededRes);
+            currentResourceJob = jobManager.GetResourceForBuild(transform.position, neededRes);
 
-            if (dropOnGround != null)
+            if (currentResourceJob != null)
             {
+                dropOnGround = currentResourceJob.worldResource;
                 List<Node> pathToDropForBuilding = pathfinder.FindPath(transform.position, dropOnGround.transform.position);
                 if (pathToDropForBuilding != null)
                 {
@@ -130,11 +132,13 @@ public class SkeletonWorker : MonoBehaviour
                     currentBuildingTask = null;
                     ChangeState(new IdleState(this));
                     jobManager.JobBecomeFree(job, 1);
-                    if (jobManager.haulJobs.ContainsKey(dropOnGround)) jobManager.JobBecomeFree(jobManager.haulJobs[dropOnGround], 1);
+                    if (currentResourceJob.IsValid()) jobManager.JobBecomeFree(currentResourceJob, 1);
+                    DropResource();
                     dropOnGround = null;
+                    
                 }
             }
-            else if (dropOnGround == null)
+            else
             {
                 Debug.Log("Не нашли ресурс на полу.");
                 currentBuildingTask = null;
@@ -166,6 +170,16 @@ public class SkeletonWorker : MonoBehaviour
                 jobManager.JobBecomeFree(job, 1);
                 ChangeState(new IdleState(this));
             }
+        }
+    }
+
+    public void DropResource()
+    {
+        if (dropOnGround != null)
+        {
+            dropOnGround.transform.SetParent(null);
+            jobManager.AddHaulJob(dropOnGround);
+            dropOnGround = null;
         }
     }
 }

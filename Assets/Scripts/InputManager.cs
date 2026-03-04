@@ -207,16 +207,16 @@ public class InputManager : MonoBehaviour
                 {
                     highlightTilemap.SetTile(currentCell, null);
 
-                    if (jobManager.digJobs.ContainsKey(currentCell) || jobManager.unreachebleTasks.Contains(currentCell))
+                    if (jobManager.digJobs.queue.HasJobAt(currentCell) || jobManager.unreachebleTasks.Contains(currentCell))
                     {
                         jobManager.RemoveDigJob(currentCell);
                     }
                 }
                 else if (currentMode == GameMode.CancelBuilding)
                 {
-                    if (jobManager.buildJobs.ContainsKey(currentCell))
+                    if (jobManager.buildJobs.queue.HasJobAt(currentCell))
                     {
-                        Job currJob = jobManager.buildJobs[currentCell];
+                        Job currJob = jobManager.buildJobs.queue.GetJobAt(currentCell);
                         currJob.constructionSite.CancelConstruction();
                         pathfinderGrid.UpdateNodeWalkability(currentCell, true);
                         occupiedCells.Remove(currentCell);
@@ -266,7 +266,7 @@ public class InputManager : MonoBehaviour
             {
                 highlightTilemap.SetTile(cell, null);
             }
-            else if (currentMode == GameMode.CancelDigging && (jobManager.digJobs.ContainsKey(cell) || jobManager.unreachebleTasks.Contains(cell)))
+            else if (currentMode == GameMode.CancelDigging && (jobManager.digJobs.queue.HasJobAt(cell) || jobManager.unreachebleTasks.Contains(cell)))
             {
                 highlightTilemap.SetTile(cell, pickaxeTile);
             }

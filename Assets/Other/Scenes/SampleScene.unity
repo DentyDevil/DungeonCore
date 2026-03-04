@@ -58007,13 +58007,12 @@ MonoBehaviour:
   timeBetweenDigging: 0
   jobManager: {fileID: 522289802}
   job:
+    workersInWork: 0
     jobType: 0
     position: {x: 0, y: 0, z: 0}
-    dropGameObject: {fileID: 0}
     constructionSite: {fileID: 0}
     worldResource: {fileID: 0}
     building: {fileID: 0}
-    workersInWork: 0
     workPriority: 0
   inputManager: {fileID: 522289800}
   dungeonCore: {fileID: 377802281}
@@ -58088,7 +58087,7 @@ Transform:
   m_GameObject: {fileID: 469165275}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -9.03, y: -0.54, z: 0}
+  m_LocalPosition: {x: 4.67, y: -4.58, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -58509,6 +58508,10 @@ MonoBehaviour:
   priorityBuildTask: 1
   priorityHaulTask: 3
   priorityDeconstructTask: 3
+  haulJobs: {fileID: 1869956642}
+  digJobs: {fileID: 1869956643}
+  buildJobs: {fileID: 1869956645}
+  deconstructJobs: {fileID: 1869956646}
 --- !u!114 &522289803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59989,6 +59992,89 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1619232426}
   m_CullTransparentMesh: 1
+--- !u!1 &1869956641
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1869956644}
+  - component: {fileID: 1869956643}
+  - component: {fileID: 1869956642}
+  - component: {fileID: 1869956645}
+  - component: {fileID: 1869956646}
+  m_Layer: 0
+  m_Name: JobQueueManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1869956642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1869956641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1ef6715053d10a4280378cd84bed67e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HaulJobQueueMB
+--- !u!114 &1869956643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1869956641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0f089474c56b8e4bbeb0980be94556d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DigJobQueueMB
+--- !u!4 &1869956644
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1869956641}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1869956645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1869956641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6b7f05d87f177d4ab42faa0ca9e9fbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildJobQueueMB
+--- !u!114 &1869956646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1869956641}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50e7b7b7693d25c439ceae8d716e3315, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DeconstructJobQueueMB
 --- !u!1 &1904247410
 GameObject:
   m_ObjectHideFlags: 0
@@ -60584,3 +60670,4 @@ SceneRoots:
   - {fileID: 90513831}
   - {fileID: 377802283}
   - {fileID: 733562788}
+  - {fileID: 1869956644}
