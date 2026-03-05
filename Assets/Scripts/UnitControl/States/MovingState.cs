@@ -23,43 +23,11 @@ public class MovingState : WorkerState
 
     public override void Execute()
     {
-        switch (job.jobType)
+        if (!job.StillValid(worker))
         {
-            case JobType.Dig:
-                if (!jobManager.digJobs.queue.HasJobAt(job.position))
-                {
-                    jobManager.JobBecomeFree(job, 1);
-                    worker.ChangeState(new IdleState(worker));
-                    return;
-                }
-                break;
-            case JobType.Build:
-                if (job.constructionSite == null)
-                {
-                    jobManager.JobBecomeFree(job, 1);
-                    worker.DropResource();
-                    worker.ChangeState(new IdleState(worker));
-                    return;
-                }
-                break;
-            case JobType.Haul:
-                if (job.worldResource == null)
-                {
-                    jobManager.JobBecomeFree(job, 1);
-                    worker.ChangeState(new IdleState(worker));
-                    return;
-                }
-                break;
-            case JobType.Deconstruct:
-                if(job.building == null)
-                {
-                    jobManager.JobBecomeFree(job, 1);
-                    worker.ChangeState(new IdleState(worker));
-                    return;
-                }
-                break;
-            default:
-                break;
+            jobManager.JobBecomeFree(job, 1);
+            worker.ChangeState(new IdleState(worker));
+            return;
         }
 
         if (MoveToTarget(1))

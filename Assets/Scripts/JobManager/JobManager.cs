@@ -39,7 +39,7 @@ public class JobManager : MonoBehaviour
     {
         foreach (Job deleteDigJob in digJobs.queue.GetJobs())
         {
-            if (deleteDigJob.position == cellPos)
+            if (deleteDigJob is DigJob dig && dig.GetWorldPosition() == cellPos)
             {
                 digJobs.queue.Remove(deleteDigJob);
                 unreachebleTasks.Remove(deleteDigJob);
@@ -67,7 +67,7 @@ public class JobManager : MonoBehaviour
     {
         foreach (Job deleteBuildJob in buildJobs.queue.GetJobs())
         {
-            if (deleteBuildJob.constructionSite == constructionSite)
+            if (deleteBuildJob is BuildJob BuildTask && BuildTask.constructionSite == constructionSite)
             {
                 buildJobs.queue.Remove(deleteBuildJob);
                 break;
@@ -93,7 +93,7 @@ public class JobManager : MonoBehaviour
     {
         foreach (Job deleteDeconstructdJob in deconstructJobs.queue.GetJobs())
         {
-            if (deleteDeconstructdJob.building == building)
+            if (deleteDeconstructdJob is DeconstructJob deconstruct && deconstruct.building == building)
             {
                 deconstructJobs.queue.Remove(deleteDeconstructdJob);
                 break;
@@ -124,17 +124,20 @@ public class JobManager : MonoBehaviour
         float minDistance = Mathf.Infinity;
         Job closestJob = null;
 
-        foreach (var haulTask in haulJobs.queue.GetJobs())
+        foreach (var task in haulJobs.queue.GetJobs())
         {
-            if(resourceDatas.Contains(haulTask.worldResource.resourceData) == false) continue;
-            if (haulTask.workersInWork >= 1) continue;
-
-            float distance = Vector3.Distance(unitPostion, haulTask.worldResource.transform.position);
-            if(distance < minDistance)
+            if (task is HaulJob haulTask)
             {
-                minDistance = distance;
-                haulJob = haulTask;
-                closestJob = haulTask;
+                if (resourceDatas.Contains(haulTask.worldResource.resourceData) == false) continue;
+                if (haulTask.workersInWork >= 1) continue;
+
+                float distance = Vector3.Distance(unitPostion, haulTask.worldResource.transform.position);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    haulJob = haulTask;
+                    closestJob = haulTask;
+                }
             }
         }
         if (closestJob != null) closestJob.workersInWork++;

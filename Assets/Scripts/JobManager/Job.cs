@@ -1,94 +1,20 @@
 using UnityEngine;
 
-public enum JobType
-{
-    Dig,
-    Build,
-    Haul,
-    Deconstruct
-}
-
 [System.Serializable]
-public abstract class Job : JobBase
+public abstract class Job
 {
-    public JobType jobType;
-    public Vector3Int position;
-    public ConstructionSite constructionSite;
-    public WorldResource worldResource;
-    public Building building;
     public int workPriority;
+    public int workersInWork = 0;
 
-    public Job(JobType job, Vector3Int pos, int priority = 3)
+    public Job(int priority)
     {
-        jobType = job;
-        position = pos;
         workPriority = priority;
     }
 
-    public Job(JobType job, ConstructionSite site, int priority = 3)
-    {
-        jobType = job;
-        constructionSite = site;
-        workPriority = priority;
-
-        position = Vector3Int.FloorToInt(site.transform.position);
-    }
-    public Job(JobType job, WorldResource _worldResource, int priority = 3)
-    {
-        jobType = job;
-        worldResource = _worldResource;
-        workPriority = priority;
-    }
-    public Job(JobType job, Building _building, int priority = 3)
-    {
-        jobType = job;
-        building = _building;
-        workPriority= priority;
-
-        position = Vector3Int.FloorToInt(_building.transform.position);
-    }
-
-    public override Vector3 GetWorldPosition()
-    {
-        return position;
-    }
-
-    public override int GetPriority()
-    {
-        return workPriority;
-    }
-
-    public override bool IsValid()
-    {
-        switch (jobType)
-        {
-            case JobType.Build:
-                if(constructionSite == null)
-                    return false;
-                break;
-            case JobType.Haul:
-                if(worldResource == null)
-                    return false;
-                break;
-            case JobType.Deconstruct:
-                if (building == null)
-                    return false;
-                break;
-        }
-        return true;
-    }
-    public override bool CanExecute()
-    {
-        switch (jobType)
-        {
-            case JobType.Haul:
-                return worldResource.resourceData.isAllowedToHaul;
-        }
-        return true;
-    }
-
-    public override bool TryStart(SkeletonWorker worker)
-    {
-        return true;
-    }
+    public abstract Vector3 GetWorldPosition();
+    public abstract int GetPriority();
+    public abstract bool IsValid();
+    public abstract bool StillValid(SkeletonWorker worke);
+    public abstract bool CanExecute();
+    public abstract bool TryStart(SkeletonWorker worker);
 }

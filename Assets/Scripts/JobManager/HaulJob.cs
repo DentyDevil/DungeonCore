@@ -3,9 +3,12 @@ using UnityEngine;
 
 public class HaulJob : Job
 {
-   public HaulJob(WorldResource resource, int priority) : base(JobType.Haul, resource, priority)
+    public WorldResource worldResource;
+    Vector3Int position;
+   public HaulJob(WorldResource _resource, int priority) : base(priority)
     {
-
+        worldResource = _resource;
+        position = Vector3Int.FloorToInt(worldResource.transform.position);
     }
 
     public override bool TryStart(SkeletonWorker worker)
@@ -24,5 +27,34 @@ public class HaulJob : Job
             worker.JobManager.JobBecomeFree(this, 1);
             return false;
         }
+    }
+    public override Vector3 GetWorldPosition()
+    {
+        return position;
+    }
+    public override int GetPriority()
+    {
+        return workPriority;
+    }
+
+    public override bool StillValid(SkeletonWorker skeletonWorker)
+    {
+        if (worldResource != null) return true;
+        return false;
+    }
+
+    public override bool CanExecute()
+    {
+        if (worldResource.resourceData.isAllowedToHaul && worldResource != null)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public override bool IsValid()
+    {
+        if (worldResource != null) return true;
+        return false;
     }
 }

@@ -214,10 +214,9 @@ public class InputManager : MonoBehaviour
                 }
                 else if (currentMode == GameMode.CancelBuilding)
                 {
-                    if (jobManager.buildJobs.queue.HasJobAt(currentCell))
+                    if (jobManager.buildJobs.queue.GetJobAt(currentCell) is BuildJob buildTask)
                     {
-                        Job currJob = jobManager.buildJobs.queue.GetJobAt(currentCell);
-                        currJob.constructionSite.CancelConstruction();
+                        buildTask.constructionSite.CancelConstruction();
                         pathfinderGrid.UpdateNodeWalkability(currentCell, true);
                         occupiedCells.Remove(currentCell);
                     }

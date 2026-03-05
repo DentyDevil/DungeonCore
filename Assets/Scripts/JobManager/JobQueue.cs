@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class JobQueue<T> where T : JobBase
+public class JobQueue<T> where T : Job
 {
     private HashSet<T> jobs;
 

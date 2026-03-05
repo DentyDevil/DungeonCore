@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class BuildJob : Job
 {
-    public BuildJob(ConstructionSite constructionSite, int priority) : base(JobType.Build, constructionSite, priority)
+    public ConstructionSite constructionSite;
+    private Vector3Int position;
+    public BuildJob(ConstructionSite _constructionSite, int priority) : base(priority)
     {
-
+        constructionSite = _constructionSite;
+        position = Vector3Int.FloorToInt(constructionSite.transform.position);
     }
 
     public override bool TryStart(SkeletonWorker worker)
@@ -17,9 +19,9 @@ public class BuildJob : Job
         if (neededRes != null)
         {
             Job currenResourceJob = worker.JobManager.GetResourceForBuild(worker.transform.position, neededRes);
-            if (currenResourceJob != null)
+            if (currenResourceJob is HaulJob haultask)
             {
-                WorldResource drop = currenResourceJob.worldResource;
+                WorldResource drop = haultask.worldResource;
                 List<Node> pathToDropForBuilding = worker.pathfinder.FindPath(worker.transform.position, drop.transform.position);
                 if(pathToDropForBuilding != null)
                 {
@@ -71,5 +73,30 @@ public class BuildJob : Job
                 return false;
             }
         }
+    }
+    public override Vector3 GetWorldPosition()
+    {
+        return position;
+    }
+    public override int GetPriority()
+    {
+        return workPriority;
+    }
+
+    public override bool StillValid(SkeletonWorker skeletonWorker)
+    {
+        if(constructionSite != null) return true;
+        return false;
+    }
+
+    public override bool CanExecute()
+    {
+        return true;
+    }
+
+    public override bool IsValid()
+    {
+        if (constructionSite != null) return true;
+        return false;
     }
 }

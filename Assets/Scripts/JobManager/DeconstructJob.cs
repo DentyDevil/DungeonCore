@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class DeconstructJob : Job
 {
-    public DeconstructJob(Building building, int priority) : base(JobType.Deconstruct, building, priority)
+    public Building building;
+    Vector3Int position;
+    public DeconstructJob(Building _building, int priority) : base(priority)
     {
-
+        building = _building;
+        position = Vector3Int.FloorToInt(building.transform.position);
     }
 
     public override bool TryStart(SkeletonWorker worker)
@@ -27,5 +29,30 @@ public class DeconstructJob : Job
             worker.ChangeState(new IdleState(worker));
             return false;
         }
+    }
+    public override Vector3 GetWorldPosition()
+    {
+        return position;
+    }
+    public override int GetPriority()
+    {
+        return workPriority;
+    }
+
+    public override bool StillValid(SkeletonWorker skeletonWorker)
+    {
+        if (building != null) return true;
+        return false;
+    }
+
+    public override bool CanExecute()
+    {
+        return true;
+    }
+
+    public override bool IsValid()
+    {
+        if (building != null) return true;
+        return false;
     }
 }
