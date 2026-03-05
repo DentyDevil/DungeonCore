@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class DungeonCore : MonoBehaviour
 {
-    int boneCount = 2;
+    int boneCount = 20;
 
     public GameObject spriteSkeletonPrefab;
     public TextMeshProUGUI boneCountText;

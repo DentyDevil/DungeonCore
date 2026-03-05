@@ -11,4 +11,6 @@ public abstract class JobBase
     public abstract bool IsValid();
 
     public abstract bool CanExecute();
+
+    public abstract bool TryStart(SkeletonWorker worker);
 }

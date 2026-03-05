@@ -9,11 +9,10 @@ public enum JobType
 }
 
 [System.Serializable]
-public class Job : JobBase
+public abstract class Job : JobBase
 {
     public JobType jobType;
     public Vector3Int position;
-    //public GameObject dropGameObject;
     public ConstructionSite constructionSite;
     public WorldResource worldResource;
     public Building building;
@@ -85,6 +84,11 @@ public class Job : JobBase
             case JobType.Haul:
                 return worldResource.resourceData.isAllowedToHaul;
         }
+        return true;
+    }
+
+    public override bool TryStart(SkeletonWorker worker)
+    {
         return true;
     }
 }

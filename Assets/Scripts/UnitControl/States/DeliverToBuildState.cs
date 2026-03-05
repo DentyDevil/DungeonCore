@@ -21,7 +21,8 @@ public class DeliverToBuildState : WorkerState
             building.RemoveIncomingResource(resourceForBuilding.resourceData);
             building.AddResource(resourceForBuilding.resourceData);
             Object.Destroy(resourceForBuilding.gameObject);
-            worker.ContinueBuildingWork();
+            jobManager.JobBecomeFree(job, 1);
+            worker.ChangeState(new IdleState(worker));
         }
         else
         {

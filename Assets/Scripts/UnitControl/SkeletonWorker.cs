@@ -17,9 +17,10 @@ public class SkeletonWorker : MonoBehaviour
     [SerializeField] Job job;
     public Job Job { get { return job; } }
 
-    [SerializeField] InputManager inputManager;
-    [SerializeField] DungeonCore dungeonCore;
-    [SerializeField] Pathfinding pathfinder;
+    public InputManager inputManager;
+    public DungeonCore dungeonCore;
+    public Pathfinding pathfinder;
+    public Pathfinding Pathfinding { get { return pathfinder; } }
 
     private Vector3Int currentTargetToDigging;
     private WorldResource dropOnGround;
@@ -45,63 +46,13 @@ public class SkeletonWorker : MonoBehaviour
     public void GetAnyJob()
     {
         job = jobManager.DelegateWork(transform.position);
-        if (job != null)
+        if (job == null) return;
+
+        if (job.TryStart(this) == false)
         {
-            switch (job.jobType)
-            {
-                case JobType.Dig:
-                    currentTargetToDigging = job.position;
-                    Vector3 targetWorldPos = new Vector3(currentTargetToDigging.x + 0.5f, currentTargetToDigging.y + 0.5f, 0);
-
-                    List<Node> path = pathfinder.FindPath(transform.position, targetWorldPos);
-
-                    if (path != null)
-                    {
-                        ChangeState(new MovingState(this, path, new DiggingState(this, jobManager, currentTargetToDigging, inputManager)));
-                    }
-                    else
-                    {
-                        Debug.Log("Сейчас это невозможно сделать. Задача переложена в режим ожидания");
-                        jobManager.JobBecomeFree(job, 1);
-                    }
-                    break;
-                case JobType.Build:
-                    currentBuildingTask = job.constructionSite;
-                    ContinueBuildingWork();
-                    break;
-                case JobType.Haul:
-                    dropOnGround = job.worldResource;
-                    if (dropOnGround == null) return;
-                    List<Node> pathToDrop = pathfinder.FindPath(transform.position, dropOnGround.transform.position);
-                    pathToDrop = pathfinder.FindPath(transform.position, dropOnGround.transform.position);
-
-                    if (pathToDrop != null)
-                    {
-                        ChangeState(new MovingState(this, pathToDrop, new PickupState(this, dropOnGround, pathfinder, dungeonCore.transform, job, jobManager, new StoreResourceState(this, dropOnGround, dungeonCore))));
-                    }
-                    else
-                    {
-                        jobManager.JobBecomeFree(job, 1);
-                    }
-                    break;
-                case JobType.Deconstruct:
-                    currentDecunstructBuilding = job.building;
-                    if (currentDecunstructBuilding == null) return;
-                    List<Node> pathToDeconcsruct = pathfinder.FindPath(transform.position, currentDecunstructBuilding.transform.position);
-                    if (pathToDeconcsruct != null)
-                    {
-                        ChangeState(new MovingState(this, pathToDeconcsruct, new DeconstructionState(this, currentDecunstructBuilding)));
-                    }
-                    else
-                    {
-                        Debug.Log("Пути к постройке которую надо разрушить на данный момент нет!");
-                        jobManager.JobBecomeFree(job, 1);
-                        ChangeState(new IdleState(this));
-                    }
-                    break;
-            }
+            jobManager.JobBecomeFree(job, 1);
+            jobManager.unreachebleTasks.Add(job);
         }
-
     }
     public void ChangeState(WorkerState newState)
     {

@@ -24,7 +24,7 @@ public class JobQueue<T> where T : JobBase
         jobs.RemoveWhere(x => x.IsValid() == false);
     }
 
-    public bool TryGetBestFor(Vector3 unitPosition, out float bestDistance, out T bestJob)
+    public bool TryGetBestFor(Vector3 unitPosition, out float bestDistance, out T bestJob, HashSet<T> unreachebleTasks)
     {
         bestJob = null;
         bestDistance = Mathf.Infinity;
@@ -34,6 +34,7 @@ public class JobQueue<T> where T : JobBase
         {
             if (job.workersInWork >= 1) continue;
             if (job.CanExecute() == false) continue;
+            if(unreachebleTasks.Contains(job)) continue;
             float distance = Vector3.Distance(unitPosition, job.GetWorldPosition());
             if (job.GetPriority() < bestPriority)
             {

@@ -207,7 +207,7 @@ public class InputManager : MonoBehaviour
                 {
                     highlightTilemap.SetTile(currentCell, null);
 
-                    if (jobManager.digJobs.queue.HasJobAt(currentCell) || jobManager.unreachebleTasks.Contains(currentCell))
+                    if (jobManager.digJobs.queue.HasJobAt(currentCell) || jobManager.HasUnreachableJobAt(currentCell))
                     {
                         jobManager.RemoveDigJob(currentCell);
                     }
@@ -266,7 +266,7 @@ public class InputManager : MonoBehaviour
             {
                 highlightTilemap.SetTile(cell, null);
             }
-            else if (currentMode == GameMode.CancelDigging && (jobManager.digJobs.queue.HasJobAt(cell) || jobManager.unreachebleTasks.Contains(cell)))
+            else if (currentMode == GameMode.CancelDigging && (jobManager.digJobs.queue.HasJobAt(cell) || jobManager.HasUnreachableJobAt(cell)))
             {
                 highlightTilemap.SetTile(cell, pickaxeTile);
             }
