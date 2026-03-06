@@ -11,13 +11,9 @@ public class AssignmentSystem
 
     public HashSet<Job> unreachebleTasks;
 
+    public JobManager jobManager;
 
-    public int priorityDigTask;
-    public int priorityBuildTask;
-    public int priorityHaulTask;
-    public int priorityDeconstructTask;
-
-    public AssignmentSystem(HaulJobQueueMB _haulJobs, DigJobQueueMB _digJobs, BuildJobQueueMB _buildJobs, DeconstructJobQueueMB _deconstructJobs, HashSet<Job> _unreachebleTasks, int _priorityDigTask, int _priorityBuildTask,int _priorityHaulTask, int _priorityDeconstructTask)
+    public AssignmentSystem(HaulJobQueueMB _haulJobs, DigJobQueueMB _digJobs, BuildJobQueueMB _buildJobs, DeconstructJobQueueMB _deconstructJobs, HashSet<Job> _unreachebleTasks, JobManager _jobManager)
     {
         haulJobs = _haulJobs;
         digJobs = _digJobs;
@@ -25,11 +21,7 @@ public class AssignmentSystem
         deconstructJobs = _deconstructJobs;
 
         unreachebleTasks = _unreachebleTasks;
-
-        priorityDigTask = _priorityDigTask;
-        priorityBuildTask = _priorityBuildTask;
-        priorityHaulTask = _priorityHaulTask;
-        priorityDeconstructTask = _priorityDeconstructTask;
+        jobManager = _jobManager;
     }
 
     public Job GetBestJob(Vector3 workerPosition)
@@ -41,13 +33,13 @@ public class AssignmentSystem
         List<(Job job, float dist, int priority)> candidates = new List<(Job job, float dist, int priority)>();
 
         if (haulJobs.queue.TryGetBestFor(workerPosition, out float distance, out Job haulJob, unreachebleTasks))
-            candidates.Add((haulJob, distance, priorityHaulTask));
+            candidates.Add((haulJob, distance, jobManager.priorityHaulTask));
         if(buildJobs.queue.TryGetBestFor(workerPosition, out distance, out Job buildJob, unreachebleTasks))
-            candidates.Add((buildJob, distance, priorityBuildTask));
+            candidates.Add((buildJob, distance, jobManager.priorityBuildTask));
         if (deconstructJobs.queue.TryGetBestFor(workerPosition, out distance, out Job deconstructJob, unreachebleTasks))
-            candidates.Add((deconstructJob, distance, priorityDeconstructTask));
+            candidates.Add((deconstructJob, distance, jobManager.priorityDeconstructTask));
         if(digJobs.queue.TryGetBestFor(workerPosition, out distance, out Job digJob, unreachebleTasks))
-            candidates.Add((digJob, distance, priorityDigTask));
+            candidates.Add((digJob, distance, jobManager.priorityDigTask));
 
         foreach (var cand in candidates)
         {

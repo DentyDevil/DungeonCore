@@ -26,7 +26,7 @@ public class JobManager : MonoBehaviour
 
     private void Awake()
     {
-        assignmentSystem = new AssignmentSystem(haulJobs, digJobs, buildJobs, deconstructJobs, unreachebleTasks, priorityDigTask, priorityBuildTask, priorityHaulTask, priorityDeconstructTask);
+        assignmentSystem = new AssignmentSystem(haulJobs, digJobs, buildJobs, deconstructJobs, unreachebleTasks, this);
     }
 
     //Методы для работы с копанием
@@ -140,7 +140,6 @@ public class JobManager : MonoBehaviour
                 }
             }
         }
-        if (closestJob != null) closestJob.workersInWork++;
         return haulJob;
     }
     public void ClearHighlight(Vector3Int position)

@@ -14,6 +14,13 @@ public class BuildJob : Job
     public override bool TryStart(SkeletonWorker worker)
     {
         if (constructionSite == null) { worker.DropResource(); worker.ChangeState(new IdleState(worker)); return false; }
+        List<Node> pathToBuilding = worker.pathfinder.FindPath(worker.transform.position, constructionSite.transform.position);
+        if(pathToBuilding == null)
+        {
+            worker.JobManager.JobBecomeFree(this, 1);
+            worker.JobManager.unreachebleTasks.Add(this);
+            return false;
+        }
 
         List<ResourceData> neededRes = constructionSite.GetNextAllRequiredResource();
         if (neededRes != null)
@@ -26,6 +33,7 @@ public class BuildJob : Job
                 if(pathToDropForBuilding != null)
                 {
                     workersInWork++;
+                    haultask.workersInWork++;
                     constructionSite.AddIncomingResource(drop.resourceData);
                     worker.ChangeState(new MovingState(worker, pathToDropForBuilding, new PickupState(worker, drop, worker.pathfinder, constructionSite.transform, this, worker.JobManager, new DeliverToBuildState(worker, constructionSite, drop, worker.JobManager, this))));
                     return true;
@@ -51,7 +59,6 @@ public class BuildJob : Job
         {
             if (constructionSite.isReadyToBuild)
             {
-                List<Node> pathToBuilding = worker.pathfinder.FindPath(worker.transform.position, constructionSite.transform.position);
                 if (pathToBuilding == null)
                 {
                     Debug.Log("К стройке невозможно дойти");

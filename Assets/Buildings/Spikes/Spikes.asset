@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74059835ba1730d4093a52a94304e484, type: 3}
+  m_Name: Spikes
+  m_EditorClassIdentifier: Assembly-CSharp::TrapData
+  damage: 50
+  coolDownTime: 5
+  detectDifficulty: 5
+  disarmDifficulty: 5
+  timeToBuild: 2
+  trapPrefab: {fileID: 5547814940494897909, guid: daadabe950a77fe4cbb57f333e22db81, type: 3}
+  resourceCost:
+  - count: 2
+    resourceData: {fileID: 0}
+  - count: 1
+    resourceData: {fileID: 0}
+  previewSprite: {fileID: 21300000, guid: b37b0594f533f7449a7d44a2a5d447ce, type: 2}

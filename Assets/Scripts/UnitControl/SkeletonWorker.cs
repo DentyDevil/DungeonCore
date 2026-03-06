@@ -22,7 +22,6 @@ public class SkeletonWorker : MonoBehaviour
     public Pathfinding pathfinder;
     public Pathfinding Pathfinding { get { return pathfinder; } }
 
-    private WorldResource dropOnGround;
     private Rigidbody2D rb;
     public Rigidbody2D Rb { get { return rb; } }
     private WorkerState currentState;
@@ -41,13 +40,22 @@ public class SkeletonWorker : MonoBehaviour
     }
     public void GetAnyJob()
     {
-        job = jobManager.DelegateWork(transform.position);
-        if (job == null) return;
-
-        if (job.TryStart(this) == false)
+        while (true)
         {
-            jobManager.JobBecomeFree(job, 1);
-            jobManager.unreachebleTasks.Add(job);
+            job = jobManager.DelegateWork(transform.position);
+
+            if (job == null) return;
+
+            if (job.TryStart(this))
+            {
+                return;
+            }
+            else
+            {
+
+                jobManager.JobBecomeFree(job, 1);
+                jobManager.unreachebleTasks.Add(job);
+            }
         }
     }
     public void ChangeState(WorkerState newState)
@@ -59,11 +67,18 @@ public class SkeletonWorker : MonoBehaviour
 
     public void DropResource()
     {
-        if (dropOnGround != null)
+        Debug.Log("1. Метод DropResource был вызван у скелета: " + gameObject.name);
+        WorldResource recourceInHands = GetComponentInChildren<WorldResource>();
+
+        if (recourceInHands != null)
         {
-            dropOnGround.transform.SetParent(null);
-            jobManager.AddHaulJob(dropOnGround);
-            dropOnGround = null;
+            Debug.Log("2. Ресурс найден в руках: " + recourceInHands.gameObject.name + ". Открепляем!");
+            recourceInHands.transform.SetParent(null);
+            jobManager.AddHaulJob(recourceInHands);
+        }
+        else
+        {
+            Debug.LogWarning("2. Скелет хотел бросить ресурс, но GetComponentInChildren вернул NULL!");
         }
     }
 }

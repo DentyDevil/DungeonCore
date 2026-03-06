@@ -26,6 +26,7 @@ public class MovingState : WorkerState
         if (!job.StillValid(worker))
         {
             jobManager.JobBecomeFree(job, 1);
+            worker.DropResource();
             worker.ChangeState(new IdleState(worker));
             return;
         }

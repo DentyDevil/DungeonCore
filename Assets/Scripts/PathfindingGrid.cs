@@ -30,14 +30,15 @@ public class PathfindingGrid : MonoBehaviour
                 Vector3Int cellPosition = wallsTilemap.WorldToCell(worldPoint);
 
                 bool walkable = false;
-
-                if(!wallsTilemap.HasTile(cellPosition) && !inputManager.occupiedCells.Contains(cellPosition))
+                int movementPenalty = 100;
+                if (!wallsTilemap.HasTile(cellPosition) && !inputManager.occupiedCells.Contains(cellPosition))
                 {
                     walkable = true;
+                    movementPenalty = 1;
                 }
 
 
-                grid[x, y] = new Node(walkable, worldPoint, x, y);
+                grid[x, y] = new Node(walkable, worldPoint, x, y, movementPenalty);
             }
         }
     }

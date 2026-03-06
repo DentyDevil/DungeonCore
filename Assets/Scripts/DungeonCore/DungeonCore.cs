@@ -6,9 +6,15 @@ public class DungeonCore : MonoBehaviour
 {
     int boneCount = 20;
 
+    public static DungeonCore Instance;
+
     public GameObject spriteSkeletonPrefab;
     public TextMeshProUGUI boneCountText;
 
+    private void Awake()
+    {
+        Instance = this;
+    }
     void UpdateUI()
     {
         boneCountText.text = "Bones: " + boneCount;

@@ -9,6 +9,8 @@ public class LootManager : MonoBehaviour
         if (resourceData == null) { Debug.Log("This tile dont drop anyfing"); return; }
         int chanceDropBones = Random.Range(1, 101);
 
+        if (chanceDropBones > 80)
+        {
             Vector3 worldCell = new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0);
 
             GameObject spawnedResource = Instantiate(resourceData.prefab, worldCell, Quaternion.identity);
@@ -16,8 +18,6 @@ public class LootManager : MonoBehaviour
             WorldResource worldResource = spawnedResource.GetComponent<WorldResource>();
 
             jobManager.AddHaulJob(worldResource);
-        if (chanceDropBones > 80)
-        {
         }
     }
 }

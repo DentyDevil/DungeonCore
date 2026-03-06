@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4314775680935123682}
   - component: {fileID: 2386012015066613141}
   - component: {fileID: -4341484727740478467}
+  - component: {fileID: 6326422915539330111}
   m_Layer: 0
   m_Name: Bone Spikes
   m_TagString: Untagged
@@ -106,3 +107,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Building
   recipe: []
   jobManager: {fileID: 0}
+--- !u!114 &6326422915539330111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5547814940494897909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f0f522ab4d17d64cb0358dc5c450561, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpikeTrap
+  trapData: {fileID: 0}
+  targetTag: Enemy
