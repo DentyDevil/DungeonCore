@@ -45,9 +45,12 @@ public class InputManager : MonoBehaviour
     private Camera mainCamera;
     private Vector3Int startCell;
 
+    public static InputManager Instance;
+
     private void Start()
     {
         mainCamera = Camera.main;
+        Instance = this;
     }
 
     private void Update()
@@ -153,10 +156,10 @@ public class InputManager : MonoBehaviour
         mouseWorldPosition.z = 0;
         return wallsTileMap.WorldToCell(mouseWorldPosition);
     }
-    public void DamageTile(Vector3Int cell, int damage)
+    public bool DamageTile(Vector3Int cell, int damage)
     {
         CustomTile tile = wallsTileMap.GetTile<CustomTile>(cell);
-        if (tile == null) return;
+        if (tile == null) return false;
         if (!currentTileHealth.ContainsKey(cell)) 
         {
             currentTileHealth.Add(cell, tile.baseHealth);
@@ -169,7 +172,9 @@ public class InputManager : MonoBehaviour
         if (tileHealth <= 0) 
         { 
             currentTileHealth.Remove(cell); FinishDiggingTask(cell); 
+            return true;
         }
+        return false;
     }
     public void FinishDiggingTask(Vector3Int cell)
     {
@@ -179,6 +184,7 @@ public class InputManager : MonoBehaviour
 
         Vector3 cellToVec = new Vector3(cell.x +0.5f, cell.y + 0.5f, 0);
         pathfinderGrid.UpdateNodeWalkability(cellToVec, true);
+        pathfinderGrid.CreateGrid();
 
         lootManager.DropFromTile(cell, tile.resourceData);
 

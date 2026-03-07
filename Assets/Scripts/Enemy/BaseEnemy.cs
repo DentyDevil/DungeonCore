@@ -3,18 +3,20 @@ using UnityEngine;
 public class BaseEnemy : MonoBehaviour, IDamageable
 {
     public EnemyData enemy;
+    public EnemyStateMachine stateMachine;
     public float healthPoints;
-
-    Vector3 target;
+    private Rigidbody2D rb;
+    public Rigidbody2D Rb { get { return rb; } }
 
     private void Awake()
     {
+        rb = GetComponent<Rigidbody2D>();
         healthPoints = enemy.healthPoints;
     }
 
     private void Start()
     {
-        target = DungeonCore.Instance.transform.position;
+        stateMachine.Initialize(new EnemyPathfindingState(this, stateMachine));
     }
 
     public void TakeDamage(float damage)

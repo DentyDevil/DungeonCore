@@ -12,6 +12,8 @@ public class EnemyData : ScriptableObject
     [Header("Базовые параметры")]
     public float healthPoints;
     public float speed;
+    public float timeBetweenDigging;
+    public int damageTile;
     public EnemyClass enemyClass;
 
     [Header("Боевые параметры")]

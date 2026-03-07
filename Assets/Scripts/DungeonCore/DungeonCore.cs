@@ -6,6 +6,8 @@ public class DungeonCore : MonoBehaviour
 {
     int boneCount = 20;
 
+    public float dungeonCoreHealthPoints = 100;
+
     public static DungeonCore Instance;
 
     public GameObject spriteSkeletonPrefab;

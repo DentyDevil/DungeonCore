@@ -12,9 +12,9 @@ public class PathfindingGrid : MonoBehaviour
 
     Node[,] grid;
 
-    private void Start()
+    private void Awake()
     {
-        CreateGrid();
+        CreateGrid();   
     }
 
     public void CreateGrid()

@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   healthPoints: 100
   speed: 20
+  timeBetweenDigging: 1
+  damageTile: 100
   enemyClass: 0
   damage: 10
   attackCoolDown: 2
