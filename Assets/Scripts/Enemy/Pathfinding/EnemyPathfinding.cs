@@ -3,79 +3,38 @@ using UnityEngine;
 
 public class EnemyPathfinding : MonoBehaviour
 {
-    PathfindingGrid grid;
-
-    void Awake()
+    Heap<Node> heap;
+    public PathfindingGrid grid;
+    private void Awake()
     {
-        grid = GetComponent<PathfindingGrid>();
+        heap = new Heap<Node>(grid.gridHeight * grid.gridWidth);
     }
 
-    public List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
+    public void FindPath(Vector3Int startPos, Vector3Int targetPos)
     {
         Node startNode = grid.NodeFromWorldPoint(startPos);
         Node targetNode = grid.NodeFromWorldPoint(targetPos);
 
-        List<Node> openSet = new List<Node>();
-        List<Node> closedSet = new List<Node>();
+        startNode.gCost = 0;
+        startNode.hCost = GetDistance(startNode, targetNode);
 
-        openSet.Add(startNode);
+        heap.Clear();
+    
+        HashSet<Node> closedSet = new HashSet<Node>();
 
-        while (openSet.Count > 0)
+        heap.Add(startNode);
+
+        while(heap.Count > 0)
         {
-            Node currentNode = openSet[0];
-            for (int i = 1; i < openSet.Count; i++)
-            {
-                if (openSet[i].fCost < currentNode.fCost ||
-                   (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
-                {
-                    currentNode = openSet[i];
-                }
-            }
+            Node currentNode = heap.RemoveFirst();
 
-            openSet.Remove(currentNode);
             closedSet.Add(currentNode);
 
-            if (currentNode == targetNode)
+            if(currentNode == targetNode)
             {
-                return RetracePath(startNode, targetNode);
-            }
 
-            foreach (Node neighbor in grid.GetNeighbors(currentNode))
-            {
-                if (closedSet.Contains(neighbor))
-                {
-                    continue;
-                }
-                int newMovementCostToNeighbor = currentNode.gCost + GetDistance(currentNode, neighbor) + neighbor.movementPenalty;
-
-                if (newMovementCostToNeighbor < neighbor.gCost || !openSet.Contains(neighbor))
-                {
-                    neighbor.gCost = newMovementCostToNeighbor;
-                    neighbor.hCost = GetDistance(neighbor, targetNode);
-                    neighbor.parent = currentNode;
-
-                    if (!openSet.Contains(neighbor))
-                        openSet.Add(neighbor);
-                }
             }
         }
-        return null;
-    }
-
-    List<Node> RetracePath(Node startNode, Node targetNode)
-    {
-        List<Node> path = new List<Node>();
-        Node currentNode = targetNode;
-
-        while (currentNode != startNode)
-        {
-            path.Add(currentNode);
-            currentNode = currentNode.parent;
-        }
-
-        path.Reverse();
-
-        return path;
     }
 
     int GetDistance(Node nodeA, Node nodeB)
@@ -83,6 +42,13 @@ public class EnemyPathfinding : MonoBehaviour
         int dstX = Mathf.Abs(nodeA.gridX - nodeB.gridX);
         int dstY = Mathf.Abs(nodeA.gridY - nodeB.gridY);
 
-        return dstX + dstY;
+        if (dstX > dstY)
+        {
+            return 14 * dstY + 10 * (dstX - dstY);
+        }
+        else
+        {
+            return 14 * dstX + 10 * (dstY - dstX);
+        }
     }
 }
