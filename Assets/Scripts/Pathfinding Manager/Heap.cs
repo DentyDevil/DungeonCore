@@ -102,7 +102,7 @@ public class Heap<T> where T : IHeapItem<T>
 
     public bool Contains(T item)
     {
-        if (item.HeapIndex < heapCount && item.HeapIndex >= 0)
+        if (item.HeapIndex >= 0 && item.HeapIndex < heapCount)
         {
             return heap[item.HeapIndex].Equals(item);
         }

@@ -4,7 +4,7 @@ using UnityEngine.InputSystem.LowLevel;
 public class EnemyAttackCoreState : EnemyBaseState
 {
     float timer;
-    public EnemyAttackCoreState(BaseEnemy enemy, EnemyStateMachine stateMachine) : base(enemy, stateMachine)
+    public EnemyAttackCoreState(WarriorEnemy enemy, EnemyStateMachine stateMachine) : base(enemy, stateMachine)
     {
         
     }

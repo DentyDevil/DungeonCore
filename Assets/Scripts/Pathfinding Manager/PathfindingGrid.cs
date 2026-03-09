@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -99,5 +100,71 @@ public class PathfindingGrid : MonoBehaviour
         Node nodeToUpdate = NodeFromWorldPoint(worldPosition);
 
         nodeToUpdate.isWalkable = isWalkable;
+    }
+
+    public void ResetNodeCosts()
+    {
+        for (int x = 0; x < gridWidth; x++)
+        {
+            for (int y = 0; y < gridHeight; y++)
+            {
+
+                grid[x, y].gCost = 1000000;
+                grid[x, y].hCost = 0;
+                grid[x, y].parent = null;
+
+            }
+        }
+    }
+
+    public List<Node> GetNodesInRadius(Node centerNode, int radius)
+    {
+        List<Node> nodes = new List<Node>((2 * radius + 1) * (2 * radius + 1));
+
+        for(int dX = -radius; dX <= radius; dX++)
+        {
+            for(int dY = -radius; dY <= radius; dY++)
+            {
+                int x = centerNode.gridX + dX;
+                int y = centerNode.gridY + dY;
+
+                if(x >= 0 && x < gridWidth && y >= 0 && y < gridHeight)
+                {
+                    nodes.Add(grid[x, y]);
+                }
+
+            }
+        }
+        return nodes;
+
+    }
+    private bool IsWall(int x, int y)
+    {
+        if(x >= 0 && x < gridWidth &&y >= 0 && y < gridHeight)
+        {
+            return !grid[x, y].isWalkable;
+        }
+        else { return true; }
+    }
+
+    public bool IsChokepoint(Node node)
+    {
+        if (IsWall(node.gridX, node.gridY)) return false;
+
+        bool leftWall = IsWall(node.gridX - 1, node.gridY);
+        bool rightWall = IsWall(node.gridX + 1, node.gridY);
+        bool upWall = IsWall(node.gridX, node.gridY + 1);
+        bool downWall = IsWall(node.gridX, node.gridY - 1);
+
+        if(leftWall && rightWall && !upWall && !downWall)
+        {
+            return true;
+        }
+        if(upWall && downWall && !leftWall && !rightWall)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

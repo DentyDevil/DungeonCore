@@ -10,8 +10,9 @@ public class EnemyPathfinding : MonoBehaviour
         heap = new Heap<Node>(grid.gridHeight * grid.gridWidth);
     }
 
-    public void FindPath(Vector3Int startPos, Vector3Int targetPos)
+    public List<Node> FindPath(Vector3Int startPos, Vector3Int targetPos, bool allowDigging)
     {
+        grid.ResetNodeCosts();
         Node startNode = grid.NodeFromWorldPoint(startPos);
         Node targetNode = grid.NodeFromWorldPoint(targetPos);
 
@@ -32,9 +33,42 @@ public class EnemyPathfinding : MonoBehaviour
 
             if(currentNode == targetNode)
             {
+                return RetracePath(startNode, targetNode);
+            }
 
+            foreach (Node neighbor in grid.GetNeighbors(currentNode))
+            {
+                if ((!neighbor.isWalkable && !allowDigging) || closedSet.Contains(neighbor)) continue;
+
+                int newCostToNeighbor = currentNode.gCost + GetDistance(currentNode, neighbor) + neighbor.movementPenalty;
+
+                if (newCostToNeighbor < neighbor.gCost || !heap.Contains(neighbor))
+                {
+                    neighbor.gCost = newCostToNeighbor;
+                    neighbor.hCost = GetDistance(neighbor, targetNode);
+                    neighbor.parent = currentNode;
+                    if (heap.Contains(neighbor)) heap.UpdateItem(neighbor);
+                    else heap.Add(neighbor);
+                }
             }
         }
+        return null;
+    }
+
+    List<Node> RetracePath(Node startNode, Node targetNode)
+    {
+        List<Node> path = new List<Node>();
+        Node currentNode = targetNode;
+
+        while (currentNode != startNode)
+        {
+            path.Add(currentNode);
+            currentNode = currentNode.parent;
+        }
+
+        path.Reverse();
+
+        return path;
     }
 
     int GetDistance(Node nodeA, Node nodeB)

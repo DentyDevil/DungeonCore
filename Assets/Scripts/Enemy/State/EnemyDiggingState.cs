@@ -7,7 +7,7 @@ public class EnemyDiggingState : EnemyBaseState
     EnemyBaseState nexState;
     int damageTile;
     Vector3Int diggingTile;
-    public EnemyDiggingState(BaseEnemy enemy, EnemyStateMachine stateMachine, Vector3Int _diggingTile, EnemyBaseState _nextState) : base(enemy, stateMachine)
+    public EnemyDiggingState(WarriorEnemy enemy, EnemyStateMachine stateMachine, Vector3Int _diggingTile, EnemyBaseState _nextState) : base(enemy, stateMachine)
     {
         diggingTile = _diggingTile;
         damageTile = enemy.enemy.damageTile;

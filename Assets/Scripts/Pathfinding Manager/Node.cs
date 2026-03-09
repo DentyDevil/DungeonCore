@@ -9,7 +9,6 @@ public class Node : IHeapItem<Node>
 
     public int gCost;
     public int hCost;
-
     public int movementPenalty;
 
     public int fCost {get { return gCost + hCost; } }
