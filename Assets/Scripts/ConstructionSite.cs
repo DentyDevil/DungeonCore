@@ -1,4 +1,3 @@
-using Mono.Cecil;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,6 +12,7 @@ public class ConstructionSite : MonoBehaviour
     public Dictionary<ResourceData, int> incomingResources = new Dictionary<ResourceData, int>();
     [SerializeField] public int maxWorkers = 1;
     [SerializeField] public bool isReadyToBuild = false;
+    BuildingData buildingData;
 
     float timeToBuild;
     GameObject finalBuildingPrefab;
@@ -22,17 +22,19 @@ public class ConstructionSite : MonoBehaviour
         cunstructionSprite = GetComponent<SpriteRenderer>();
     }
 
-    public void setBuilding(BuildingData buildingData)
+    public void setBuilding(BuildingData _buildingData)
     {
 
-        timeToBuild = buildingData.timeToBuild;
+        timeToBuild = _buildingData.timeToBuild;
 
-        finalBuildingPrefab = buildingData.actualPrefab;
+        finalBuildingPrefab = _buildingData.actualPrefab;
 
-        resourceCost = new List<ResourceCost>(buildingData.resourceCost);
+        buildingData = _buildingData;
+
+        resourceCost = new List<ResourceCost>(_buildingData.resourceCost);
         if (timeToBuild <= 0)
         {
-            cunstructionSprite.sprite = buildingData.previewSprite;
+            cunstructionSprite.sprite = _buildingData.previewSprite;
         }
     }
 
@@ -82,9 +84,11 @@ public class ConstructionSite : MonoBehaviour
         GameObject newBuild = Instantiate(finalBuildingPrefab, transform.position, Quaternion.identity);
         Building build = newBuild.GetComponent<Building>();
         build.recipe = new List<ResourceCost>(resourceCost);
-        build.jobManager = JobManager;
+        build.jobManager = JobManager.Instance;
         JobManager.AddBuilding(build);
         JobManager.RemoveBuildJob(this);
+        if (buildingData.isDoor) PathfindingManager.Instance.Grid.UpdateDoorNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
+        else PathfindingManager.Instance.Grid.UpdateNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
         Destroy(gameObject);
     }
 

@@ -39,7 +39,7 @@ public class PathfindingGrid : MonoBehaviour
                 }
 
 
-                grid[x, y] = new Node(walkable, worldPoint, x, y, movementPenalty);
+                grid[x, y] = new Node(walkable, false, worldPoint, x, y, movementPenalty);
             }
         }
     }
@@ -100,6 +100,16 @@ public class PathfindingGrid : MonoBehaviour
         Node nodeToUpdate = NodeFromWorldPoint(worldPosition);
 
         nodeToUpdate.isWalkable = isWalkable;
+    }
+
+    public void UpdateDoorNodeWalkability(Vector3 worldPosition, bool isDoor)
+    {
+        Node nodeToUpdate = NodeFromWorldPoint(worldPosition);
+
+        nodeToUpdate.isDoor = isDoor;
+        nodeToUpdate.isWalkable = false;
+
+        Debug.LogWarning($"Обновлена проходимость нода -{nodeToUpdate}. nodeToUpdate.isDoor стал - {nodeToUpdate.isDoor} и nodeToUpdate.isWalkable стал - {nodeToUpdate.isWalkable}");
     }
 
     public void ResetNodeCosts()

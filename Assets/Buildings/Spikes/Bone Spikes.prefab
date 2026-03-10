@@ -119,5 +119,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f0f522ab4d17d64cb0358dc5c450561, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpikeTrap
-  trapData: {fileID: 0}
+  trapData: {fileID: 11400000, guid: 9f65d026ee6cbe549ae2af1adde1fae2, type: 2}
   targetTag: Enemy

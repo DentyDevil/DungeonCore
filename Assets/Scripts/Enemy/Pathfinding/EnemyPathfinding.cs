@@ -38,7 +38,7 @@ public class EnemyPathfinding : MonoBehaviour
 
             foreach (Node neighbor in grid.GetNeighbors(currentNode))
             {
-                if ((!neighbor.isWalkable && !allowDigging) || closedSet.Contains(neighbor)) continue;
+                if ((!neighbor.isWalkable && !neighbor.isDoor && !allowDigging) || closedSet.Contains(neighbor)) continue;
 
                 int newCostToNeighbor = currentNode.gCost + GetDistance(currentNode, neighbor) + neighbor.movementPenalty;
 

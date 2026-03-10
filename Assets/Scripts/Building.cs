@@ -4,7 +4,7 @@ using UnityEngine;
 public class Building : MonoBehaviour
 {
     public List<ResourceCost> recipe = new List<ResourceCost>();
-    [SerializeField] public JobManager jobManager;
+    public JobManager jobManager;
     float timer = 0;
     float timeToDestroy = 5f;
 

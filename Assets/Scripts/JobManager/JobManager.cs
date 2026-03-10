@@ -24,8 +24,11 @@ public class JobManager : MonoBehaviour
 
     AssignmentSystem assignmentSystem;
 
+    public static JobManager Instance;
+
     private void Awake()
     {
+        Instance = this;
         assignmentSystem = new AssignmentSystem(haulJobs, digJobs, buildJobs, deconstructJobs, unreachebleTasks, this);
     }
 

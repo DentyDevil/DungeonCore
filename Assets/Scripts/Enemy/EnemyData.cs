@@ -14,6 +14,7 @@ public class EnemyData : ScriptableObject
     public float speed;
     public float timeBetweenDigging;
     public int damageTile;
+    public float timeToOpenDoor;
     public EnemyClass enemyClass;
 
     [Header("Боевые параметры")]

@@ -15,6 +15,7 @@ public class BuildingData : ScriptableObject
     public Sprite previewSprite;
     public GameObject actualPrefab;
     public float timeToBuild;
+    public bool isDoor = false;
 
     public List<ResourceCost> resourceCost = new List<ResourceCost>();
 }
