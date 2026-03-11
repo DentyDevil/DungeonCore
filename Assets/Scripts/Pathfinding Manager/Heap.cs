@@ -108,4 +108,16 @@ public class Heap<T> where T : IHeapItem<T>
         }
         else return false;
     }
+
+    public T[] GetItems()
+    {
+        T[] items = new T[heapCount];
+
+        for (int i = 0; i < heapCount; i++)
+        {
+            items[i] = heap[i];
+        }
+
+        return items;
+    }
 }

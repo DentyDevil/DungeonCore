@@ -184,7 +184,6 @@ public class InputManager : MonoBehaviour
 
         Vector3 cellToVec = new Vector3(cell.x +0.5f, cell.y + 0.5f, 0);
         pathfinderGrid.UpdateNodeWalkability(cellToVec, true);
-        pathfinderGrid.CreateGrid();
 
         lootManager.DropFromTile(cell, tile.resourceData);
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyOpenDoorState : EnemyBaseState
@@ -33,8 +34,15 @@ public class EnemyOpenDoorState : EnemyBaseState
         if (timer >= timeToOpenDoor)
         {
             PathfindingManager.Instance.Grid.UpdateNodeWalkability(doorPosition, true);
-            stateMachine.ChangeState(nexState);
-            Debug.Log($"Враг взламал дверь дверь! и переходит в состояние - {nexState}");
+
+            List<Node> stepInsidePath = new List<Node>();
+            stepInsidePath.Add(PathfindingManager.Instance.Grid.NodeFromWorldPoint(doorPosition));
+
+            Vector3Int posBeforeStep = Vector3Int.FloorToInt(enemy.transform.position);
+
+            stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, stepInsidePath, enemy.enemy, new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine), true, posBeforeStep)));
+
+            Debug.Log("Враг взломал дверь, делает шаг внутрь и начинает сканирование!");
         }
     }
 }

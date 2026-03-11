@@ -43,16 +43,8 @@ public class EnemyMoveState : EnemyBaseState
             if (Vector3.Distance(enemy.transform.position, path[targetIndex].worldPosition) <= stopDistance)
             {
                 targetIndex++;
-                Vector3Int enemyPos = Vector3Int.FloorToInt(enemy.transform.position);
-                Vector3Int doorPos = Vector3Int.FloorToInt(path[targetIndex -1].worldPosition);
-                Vector3Int diretion = doorPos - enemyPos;
-                Vector3Int startRoomPos = doorPos + diretion;
-
-                Node targetAfterDoor = PathfindingManager.Instance.Grid.NodeFromWorldPoint(startRoomPos);
                 
                 if (targetIndex < path.Count && path[targetIndex].isWalkable == false && path[targetIndex].isDoor == false) { stateMachine.ChangeState(new EnemyDiggingState(enemy, stateMachine, Vector3Int.FloorToInt(path[targetIndex].worldPosition), new EnemyPathfindingState(enemy, stateMachine))); return false; }
-                else if (targetIndex < path.Count && path[targetIndex].isWalkable == false && path[targetIndex].isDoor == true) { stateMachine.ChangeState(new EnemyOpenDoorState(enemy, stateMachine, enemy.enemy.timeToOpenDoor, Vector3Int.FloorToInt(path[targetIndex].worldPosition), new EnemyExploreRoomState(enemy, stateMachine, targetAfterDoor, new EnemyScanState(enemy, stateMachine)))); }
-                else if (targetIndex < path.Count && path[targetIndex].isWalkable == true && path[targetIndex].isDoor == true) { stateMachine.ChangeState(new EnemyExploreRoomState(enemy, stateMachine, targetAfterDoor, new EnemyScanState(enemy, stateMachine))); }
             }
         }
         else

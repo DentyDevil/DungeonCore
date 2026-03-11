@@ -1,53 +1,46 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class EnemyExploreRoomState : EnemyBaseState
 {
-    List<Node> room;
-    Node startNode;
-    int maxSizeRoom;
+    List<Node> availableTiles;
+    int pointsLeft;
+    EnemyBaseState nextState;
 
-    Queue<Vector3Int> targets = new Queue<Vector3Int>();
-    public EnemyExploreRoomState(WarriorEnemy enemy, EnemyStateMachine stateMachine, Node _startNode, EnemyBaseState _nextState) : base(enemy, stateMachine)
+    float waitDuration = 3f;
+    float timer;
+    bool isWaiting;
+    bool instantStart;
+
+    public EnemyExploreRoomState(WarriorEnemy enemy, EnemyStateMachine stateMachine, List<Node> _availibleTiles, int _pointsLeft, EnemyBaseState _nextState, bool _instantStart = false) : base(enemy, stateMachine)
     {
-        startNode = _startNode;
-        maxSizeRoom = DungeonCore.Instance.maxRoomSize; ;
+        availableTiles = _availibleTiles;
+        pointsLeft = _pointsLeft;
+        nextState = _nextState;
+
+        
     }
 
     public override void Enter()
     {
-        if (room != null) return;
+        if(instantStart) timer = waitDuration;
+        else timer = 0;
 
-        room = GetRoomTiles(startNode, maxSizeRoom);
-
-        foreach (Node node in room)
-        {
-            if (!enemy.visitedCells.Contains(Vector3Int.FloorToInt(node.worldPosition))) enemy.visitedCells.Add(Vector3Int.FloorToInt(node.worldPosition));
-            else continue;
-        }
-
-        if (room.Count == 0) return;
-
-        for (int i = 0; i < 3; i++) 
-        {
-            int randomIndex = Random.Range(0, room.Count);
-            Node randNode = room[randomIndex];
-            targets.Enqueue(Vector3Int.FloorToInt(randNode.worldPosition));
-        }
+        isWaiting = true;
     }
     public override void Execute()
     {
-       
+        if (!isWaiting) return;
 
-        if (targets.Count > 0)
+        timer += Time.deltaTime;
+
+        if (timer > waitDuration)
         {
-            List<Node> nextPoint = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(Vector3Int.FloorToInt(enemy.transform.position), targets.Dequeue(), false);
-            stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, nextPoint, enemy.enemy, this));
-        }
-        else
-        {
-            stateMachine.ChangeState(new EnemyScanState(enemy, stateMachine));
+            isWaiting = false;
+            if (pointsLeft <= 0 || availableTiles == null || availableTiles.Count == 0) stateMachine.ChangeState(nextState);
+            else GoToRandomPoint();
         }
     }
     public override void Exit()
@@ -55,36 +48,31 @@ public class EnemyExploreRoomState : EnemyBaseState
 
     }
 
-    List<Node> GetRoomTiles(Node startNode, int maxSize)
+    void GoToRandomPoint()
     {
-        Queue<Node> queue = new Queue<Node>();
-        HashSet<Node> roomTiles = new HashSet<Node>();
-        HashSet<Node> foundDoors = new HashSet<Node>();
-        queue.Enqueue(startNode);
-        roomTiles.Add(startNode);
+        Node randomTarget = availableTiles[Random.Range(0, availableTiles.Count)];
+        availableTiles.Remove(randomTarget);
 
-        while (queue.Count > 0 && roomTiles.Count <= maxSize)
+        Vector3Int targetPos = Vector3Int.FloorToInt(randomTarget.worldPosition);
+        Vector3Int unitPos = Vector3Int.FloorToInt(enemy.transform.position);
+        if(targetPos == unitPos)
         {
-            Node currentNode = queue.Dequeue();
-            foreach(Node roomTileNeighbors in PathfindingManager.Instance.Grid.GetOrthogonalNeighbors(currentNode))
-            {
-                if (!roomTiles.Contains(roomTileNeighbors) && roomTileNeighbors.isWalkable && !roomTileNeighbors.isDoor)
-                {
-                    roomTiles.Add(roomTileNeighbors);
-                    queue.Enqueue(roomTileNeighbors);
-                }
-                else if(roomTileNeighbors.isDoor)
-                {
-                    if (enemy.visitedCells.Contains(Vector3Int.FloorToInt(roomTileNeighbors.worldPosition)) && foundDoors.Contains(roomTileNeighbors)) continue;
-                    foundDoors.Add(roomTileNeighbors);
-                    Vector3Int pos = Vector3Int.FloorToInt(roomTileNeighbors.worldPosition);
-                    float distance = Vector3.Distance(enemy.transform.position, roomTileNeighbors.worldPosition);
-                    float priority = distance + Random.Range(-0.5f, 0.5f);
-
-                    enemy.explorationMemory.Add(new ExplorationTarget { position = pos, priority = priority });
-                }
-            }
+            stateMachine.ChangeState(new EnemyExploreRoomState(enemy, stateMachine, availableTiles, pointsLeft, nextState, true));
+            return;
         }
-        return new List<Node>(roomTiles);
+
+        List<Node> path = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(unitPos, targetPos, false);
+
+        if (path != null && path.Count > 0)
+        {
+            stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, path, enemy.enemy, new EnemyExploreRoomState(enemy, stateMachine, availableTiles, pointsLeft - 1, nextState, false)));
+            
+        }
+        else
+        {
+            stateMachine.ChangeState(new EnemyExploreRoomState(enemy, stateMachine, availableTiles, pointsLeft, nextState, true));
+        }
     }
+
+   
 }

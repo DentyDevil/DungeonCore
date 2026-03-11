@@ -36,9 +36,15 @@ public class EnemyPathfinding : MonoBehaviour
                 return RetracePath(startNode, targetNode);
             }
 
-            foreach (Node neighbor in grid.GetNeighbors(currentNode))
+            foreach (Node neighbor in grid.GetOrthogonalNeighbors(currentNode))
             {
                 if ((!neighbor.isWalkable && !neighbor.isDoor && !allowDigging) || closedSet.Contains(neighbor)) continue;
+
+                //if (neighbor.isDoor)
+                //{
+                //    if (currentNode.gridX != neighbor.gridX && currentNode.gridY != neighbor.gridY)
+                //        continue;
+                //}
 
                 int newCostToNeighbor = currentNode.gCost + GetDistance(currentNode, neighbor) + neighbor.movementPenalty;
 

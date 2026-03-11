@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class WarriorEnemy : MonoBehaviour, IDamageable
@@ -12,6 +13,8 @@ public class WarriorEnemy : MonoBehaviour, IDamageable
     public Heap<ExplorationTarget> explorationMemory;
     public HashSet<Vector3Int> visitedCells;
 
+    public List<Node> room;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -22,7 +25,7 @@ public class WarriorEnemy : MonoBehaviour, IDamageable
 
     private void Start()
     {
-        stateMachine.Initialize(new EnemyScanState(this, stateMachine));
+        stateMachine.Initialize(new EnemyScanState(this, stateMachine, new EnemyPathfindingState(this, stateMachine)));
     }
 
     public void TakeDamage(float damage)
@@ -34,11 +37,36 @@ public class WarriorEnemy : MonoBehaviour, IDamageable
             Die();
         }
     }
+    private void Update()
+    {
+
+    }
 
     void Die()
     {
         Destroy(gameObject);
         Debug.Log("Враг умер! выпал дроп...");
     }
-    
+
+    private void OnDrawGizmos()
+    {
+        if (room == null || room.Count == 0) return;
+
+        Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
+
+        foreach (Node node in room)
+        {
+            Gizmos.DrawCube(node.worldPosition, Vector3.one);
+        }
+
+        if (explorationMemory == null || explorationMemory.Count == 0) return;
+
+        Gizmos.color = Color.purple;
+
+        foreach (var doors in explorationMemory.GetItems())
+        {
+            Gizmos.DrawCube(doors.position, Vector3.one);
+        }
+    }
+
 }
