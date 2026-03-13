@@ -35,7 +35,7 @@ public class JobQueue<T> where T : Job
             if (job.workersInWork >= 1) continue;
             if (job.CanExecute() == false) continue;
             if(unreachebleTasks.Contains(job)) continue;
-            float distance = Vector3.Distance(unitPosition, job.GetWorldPosition());
+            float distance = (unitPosition - job.GetWorldPosition()).sqrMagnitude;
             if (job.GetPriority() < bestPriority)
             {
                 bestPriority = job.GetPriority();

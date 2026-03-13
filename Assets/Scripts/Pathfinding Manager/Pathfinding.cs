@@ -1,64 +1,59 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 public class Pathfinding : MonoBehaviour
 {
     PathfindingGrid grid;
+    Heap<Node> heap;
 
     void Awake()
     {
         grid = GetComponent<PathfindingGrid>();
+        heap = new Heap<Node>(grid.gridWidth * grid.gridHeight);
     }
 
     public List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
     {
+        grid.ResetNodeCosts();
         Node startNode = grid.NodeFromWorldPoint(startPos);
         Node targetNode = grid.NodeFromWorldPoint(targetPos);
 
-        List<Node> openSet = new List<Node>();
-        List<Node> closedSet = new List<Node>();
+        startNode.gCost = 0;
+        startNode.hCost = GetDistance(startNode, targetNode);
 
-        openSet.Add(startNode);
+        heap.Clear();
 
-        while (openSet.Count > 0)
+        HashSet<Node> closedSet = new HashSet<Node>();
+
+        heap.Add(startNode);
+
+        while (heap.Count > 0)
         {
-            Node currentNode = openSet[0];
-            for (int i = 1; i < openSet.Count; i++)
-            {
-                if (openSet[i].fCost < currentNode.fCost ||
-                   (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
-                {
-                    currentNode = openSet[i];
-                }
-            }
-
-            openSet.Remove(currentNode);
+            Node currentNode = heap.RemoveFirst();
             closedSet.Add(currentNode);
-
-            if (currentNode == targetNode)
+            
+            if(currentNode == targetNode)
             {
                 return RetracePath(startNode, targetNode);
             }
 
-            foreach (Node neighbor in grid.GetNeighbors(currentNode))
+            foreach (Node neighbor in grid.GetOrthogonalNeighbors(currentNode))
             {
 
-                if ((!neighbor.isWalkable || closedSet.Contains(neighbor)) && neighbor != targetNode)
-                {
-                    continue;
-                }
+                if (closedSet.Contains(neighbor)) continue;
 
-                int newMovementCostToNeighbor = currentNode.gCost + GetDistance(currentNode, neighbor);
+                if (!neighbor.isWalkable && neighbor != targetNode) continue;
+                
+                int newMovementCostToNeighbor = currentNode.gCost + GetDistance(currentNode, neighbor) + neighbor.movementPenalty;
 
-                if (newMovementCostToNeighbor < neighbor.gCost || !openSet.Contains(neighbor))
+                if (newMovementCostToNeighbor < neighbor.gCost || !heap.Contains(neighbor))
                 {
                     neighbor.gCost = newMovementCostToNeighbor;
                     neighbor.hCost = GetDistance(neighbor, targetNode);
                     neighbor.parent = currentNode;
 
-                    if (!openSet.Contains(neighbor))
-                        openSet.Add(neighbor);
+                    if (heap.Contains(neighbor)) heap.UpdateItem(neighbor);
+                    else heap.Add(neighbor);
                 }
             }
         }

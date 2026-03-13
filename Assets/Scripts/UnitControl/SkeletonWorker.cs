@@ -26,9 +26,14 @@ public class SkeletonWorker : MonoBehaviour
     public Rigidbody2D Rb { get { return rb; } }
     private WorkerState currentState;
 
+    public HashSet<Job> unreachableJobs = new HashSet<Job>();
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        jobManager.allWorkers.Add(this);
+
         ChangeState(new IdleState(this));
     }
     void FixedUpdate()
@@ -40,9 +45,13 @@ public class SkeletonWorker : MonoBehaviour
     }
     public void GetAnyJob()
     {
-        while (true)
+        int maxAttempts = 5;
+        int attempts = 0;
+
+        while (attempts < maxAttempts)
         {
-            job = jobManager.DelegateWork(transform.position);
+
+            job = jobManager.DelegateWork(this);
 
             if (job == null) return;
 
@@ -54,7 +63,8 @@ public class SkeletonWorker : MonoBehaviour
             {
 
                 jobManager.JobBecomeFree(job, 1);
-                jobManager.unreachebleTasks.Add(job);
+                unreachableJobs.Add(job);
+                attempts++;
             }
         }
     }
@@ -79,6 +89,18 @@ public class SkeletonWorker : MonoBehaviour
         else
         {
             Debug.LogWarning("2. Скелет хотел бросить ресурс, но GetComponentInChildren вернул NULL!");
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (unreachableJobs == null) return;
+        Gizmos.color = Color.yellow;
+        
+       foreach (var job in unreachableJobs)
+        {
+            Vector3 centPos = job.GetWorldPosition() + new Vector3(0.5f, 0.5f, 0f);
+            Gizmos.DrawCube(centPos, Vector3.one);
         }
     }
 }

@@ -9,7 +9,7 @@ public class EnemyExploreRoomState : EnemyBaseState
     int pointsLeft;
     EnemyBaseState nextState;
 
-    float waitDuration = 3f;
+    float waitDuration;
     float timer;
     bool isWaiting;
     bool instantStart;
@@ -19,7 +19,7 @@ public class EnemyExploreRoomState : EnemyBaseState
         availableTiles = _availibleTiles;
         pointsLeft = _pointsLeft;
         nextState = _nextState;
-
+        waitDuration = enemy.enemy.timeToScanRoom;
         
     }
 

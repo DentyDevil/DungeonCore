@@ -9,20 +9,35 @@ public class EnemyMoveState : EnemyBaseState
     List<Node> path;
     EnemyBaseState nextStateAfterMoving;
 
+    bool isOpenigDoor = false;
+    float doorTimer = 0f;
+    float timeToOpenDoor;
+
+
     public EnemyMoveState(WarriorEnemy enemy, EnemyStateMachine stateMachine, List<Node> _path, EnemyData _enemyData , EnemyBaseState nextState) : base(enemy, stateMachine)
     {
         path = _path;
         enemyData = _enemyData;
         nextStateAfterMoving = nextState;
+        timeToOpenDoor = enemyData.timeToOpenDoor;   
     }
 
     public override void Enter()
     {
-
+        CheckForDoorAndPause();
     }
     public override void Execute()
     {
-
+        if (isOpenigDoor)
+        {
+            doorTimer += Time.deltaTime;
+            if(doorTimer >= timeToOpenDoor)
+            {
+                isOpenigDoor = false;
+                OpenDoorAt(path[targetIndex].worldPosition);
+            }
+            return;
+        }
         if (MoveToTarget(0.1f))
         {
             stateMachine.ChangeState(nextStateAfterMoving);
@@ -32,7 +47,6 @@ public class EnemyMoveState : EnemyBaseState
     {
 
     }
-
     private bool MoveToTarget(float stopDistance)
     {
         if (targetIndex < path.Count)
@@ -43,6 +57,8 @@ public class EnemyMoveState : EnemyBaseState
             if (Vector3.Distance(enemy.transform.position, path[targetIndex].worldPosition) <= stopDistance)
             {
                 targetIndex++;
+
+                CheckForDoorAndPause();
                 
                 if (targetIndex < path.Count && path[targetIndex].isWalkable == false && path[targetIndex].isDoor == false) { stateMachine.ChangeState(new EnemyDiggingState(enemy, stateMachine, Vector3Int.FloorToInt(path[targetIndex].worldPosition), new EnemyPathfindingState(enemy, stateMachine))); return false; }
             }
@@ -52,5 +68,23 @@ public class EnemyMoveState : EnemyBaseState
             return true;
         }
         return false;
+    }
+
+    void CheckForDoorAndPause()
+    {
+        if(targetIndex < path.Count && path[targetIndex].isDoor)
+        {
+            doorTimer = 0;
+            isOpenigDoor = true;
+        }
+    }
+    void OpenDoorAt(Vector3 pos)
+    {
+        Collider2D doorCollider = Physics2D.OverlapPoint(pos);
+        if (doorCollider != null)
+        {
+            AutoDoor door = doorCollider.GetComponent<AutoDoor>();
+            if (door != null) door.OpenDoor();  
+        }
     }
 }

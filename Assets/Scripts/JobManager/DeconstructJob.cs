@@ -5,7 +5,7 @@ public class DeconstructJob : Job
 {
     public Building building;
     Vector3Int position;
-    public DeconstructJob(Building _building, int priority) : base(priority)
+    public DeconstructJob(Building _building) : base(JobType.Deconstruct)
     {
         building = _building;
         position = Vector3Int.FloorToInt(building.transform.position);
@@ -33,10 +33,6 @@ public class DeconstructJob : Job
     public override Vector3 GetWorldPosition()
     {
         return position;
-    }
-    public override int GetPriority()
-    {
-        return workPriority;
     }
 
     public override bool StillValid(SkeletonWorker skeletonWorker)

@@ -19,8 +19,6 @@ MonoBehaviour:
   timeToBuild: 2
   trapPrefab: {fileID: 5547814940494897909, guid: daadabe950a77fe4cbb57f333e22db81, type: 3}
   resourceCost:
-  - count: 2
-    resourceData: {fileID: 0}
   - count: 1
-    resourceData: {fileID: 0}
+    resourceData: {fileID: 11400000, guid: a79f4e775a5598a4cbe122542054fef0, type: 2}
   previewSprite: {fileID: 21300000, guid: b37b0594f533f7449a7d44a2a5d447ce, type: 2}

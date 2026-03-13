@@ -23,11 +23,15 @@ public class EnemyPathfindingState : EnemyBaseState
             Vector3Int doorPos = Vector3Int.FloorToInt(door.position);
             if (enemy.visitedCells.Contains(doorPos)) return;
             enemy.visitedCells.Add(doorPos);
+
             path = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(unitPos, doorPos, false);
+
             if (path != null && path.Count > 0)
             {
-                path.RemoveAt(path.Count - 1);
-                stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, path, enemy.enemy, new EnemyOpenDoorState(enemy, stateMachine, enemy.enemy.timeToOpenDoor, doorPos, new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine)))));
+                Vector3Int tileBeforeDoor = unitPos;
+                if (path.Count > 1) tileBeforeDoor = Vector3Int.FloorToInt(path[path.Count - 2].worldPosition);
+
+                stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, path, enemy.enemy, new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine), true, tileBeforeDoor)));
             }
             else { Debug.LogWarning("Опс! пути к двери нет"); }
         }

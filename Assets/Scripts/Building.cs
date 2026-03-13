@@ -12,13 +12,13 @@ public class Building : MonoBehaviour
     {
         if (TakeDeconstructWork(timeToDestroy))
         {
-            ReturneResource();
+            ReturnResource();
             return true;
         }
         return false;
     }
 
-    void ReturneResource()
+    void ReturnResource()
     {
         foreach (ResourceCost returneResource in recipe)
         {
@@ -35,6 +35,9 @@ public class Building : MonoBehaviour
         cell.z = 0;
         jobManager.ClearHighlight(cell);
         jobManager.RemoveDeconstruct(this);
+        PathfindingManager.Instance.Grid.UpdateNodeWalkability(cell, true);
+        PathfindingManager.Instance.Grid.UpdateDoorNodeWalkability(cell, false);
+        InputManager.Instance.occupiedCells.Remove(Vector3Int.FloorToInt(transform.position));
         Destroy(gameObject);
     }
     bool TakeDeconstructWork(float _timeToDestroy)

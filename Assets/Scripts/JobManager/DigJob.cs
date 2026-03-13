@@ -4,7 +4,7 @@ using UnityEngine;
 public class DigJob : Job
 {
     Vector3Int position;
-    public DigJob(Vector3Int pos, int priority) : base(priority)
+    public DigJob(Vector3Int pos) : base(JobType.Dig)
     {
        position = pos;
     }
@@ -22,14 +22,10 @@ public class DigJob : Job
     {
         return position;
     }
-    public override int GetPriority()
-    {
-        return workPriority;
-    }
 
     public override bool StillValid(SkeletonWorker skeletonWorker)
     {
-        return skeletonWorker.JobManager.digJobs.queue.HasJobAt(position);
+        return skeletonWorker.JobManager.jobQueues[JobType.Dig].HasJobAt(position);
     }
 
     public override bool CanExecute()

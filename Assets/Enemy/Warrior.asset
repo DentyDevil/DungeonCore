@@ -13,16 +13,17 @@ MonoBehaviour:
   m_Name: Warrior
   m_EditorClassIdentifier: Assembly-CSharp::EnemyData
   healthPoints: 100
-  speed: 20
+  speed: 2
   timeBetweenDigging: 1
   damageTile: 100
-  timeToOpenDoor: 2
-  enemyClass: 0
+  timeToOpenDoor: 1
+  timeToScanRoom: 1
+  enemyClass: 2
   damage: 10
   attackCoolDown: 2
   magicSkill: 2
   mechanicalSkill: 1
   magicDetectedSkill: 2
   mechanicalDetectedSkill: 3
-  enemyPrefab: {fileID: 6772352393285379310, guid: 4551c1fdd6126214c9a04562af461b7b, type: 3}
+  enemyPrefab: {fileID: 4147378177332828383, guid: bf78c79de04b31b4f9f8761bab2ebe7a, type: 3}
   previewSprite: {fileID: -9095717837082945937, guid: e6b184dc3679b9448bbef9842e482967, type: 3}

@@ -10,7 +10,7 @@ public class EnemyStateMachine : MonoBehaviour
         CurrentState.Enter();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         CurrentState?.Execute();
     }

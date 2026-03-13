@@ -5,7 +5,7 @@ public class BuildJob : Job
 {
     public ConstructionSite constructionSite;
     private Vector3Int position;
-    public BuildJob(ConstructionSite _constructionSite, int priority) : base(priority)
+    public BuildJob(ConstructionSite _constructionSite) : base(JobType.Build)
     {
         constructionSite = _constructionSite;
         position = Vector3Int.FloorToInt(constructionSite.transform.position);
@@ -18,7 +18,7 @@ public class BuildJob : Job
         if(pathToBuilding == null)
         {
             worker.JobManager.JobBecomeFree(this, 1);
-            worker.JobManager.unreachebleTasks.Add(this);
+            worker.unreachableJobs.Add(this);
             return false;
         }
 
@@ -84,10 +84,6 @@ public class BuildJob : Job
     public override Vector3 GetWorldPosition()
     {
         return position;
-    }
-    public override int GetPriority()
-    {
-        return workPriority;
     }
 
     public override bool StillValid(SkeletonWorker skeletonWorker)

@@ -23,6 +23,7 @@ public class InputManager : MonoBehaviour
     [SerializeField] private float minBounds = 0.2f;
     [SerializeField] private float maxBounds = 0.2f;
     private BuildingData currentBuildingData;
+    private TrapData currentTrapData;
     private ConstructionSite constructionSite;
     [SerializeField] private SpriteRenderer buildPreview;
     [SerializeField] private GameObject constructionSitePrefab;
@@ -113,12 +114,20 @@ public class InputManager : MonoBehaviour
             {
                 GameObject newBuild = Instantiate(constructionSitePrefab, mousePosition, Quaternion.identity);
                 constructionSite = newBuild.GetComponent<ConstructionSite>();
-                constructionSite.setBuilding(currentBuildingData);
+                if (currentBuildingData != null)
+                {
+                    constructionSite.setBuilding(currentBuildingData);
+                    pathfinderGrid.UpdateNodeWalkability(mousePosition, false);
+                }
+                else if(currentTrapData != null)
+                {
+                    constructionSite.SetTrap(currentTrapData);
+                }
                 constructionSite.JobManager = jobManager;
                 jobManager.AddBuildJob(constructionSite);
                 occupiedCells.Add(GetMouseCellPosition());
-                pathfinderGrid.UpdateNodeWalkability(mousePosition, false);
-                Debug.Log("You plase spikes to build");
+
+                Debug.Log("You plase site to build");
             }
         }
     }
@@ -212,14 +221,14 @@ public class InputManager : MonoBehaviour
                 {
                     highlightTilemap.SetTile(currentCell, null);
 
-                    if (jobManager.digJobs.queue.HasJobAt(currentCell) || jobManager.HasUnreachableJobAt(currentCell))
+                    if (jobManager.jobQueues[JobType.Dig].HasJobAt(currentCell))
                     {
                         jobManager.RemoveDigJob(currentCell);
                     }
                 }
                 else if (currentMode == GameMode.CancelBuilding)
                 {
-                    if (jobManager.buildJobs.queue.GetJobAt(currentCell) is BuildJob buildTask)
+                    if (jobManager.jobQueues[JobType.Build].GetJobAt(currentCell) is BuildJob buildTask)
                     {
                         buildTask.constructionSite.CancelConstruction();
                         pathfinderGrid.UpdateNodeWalkability(currentCell, true);
@@ -270,7 +279,7 @@ public class InputManager : MonoBehaviour
             {
                 highlightTilemap.SetTile(cell, null);
             }
-            else if (currentMode == GameMode.CancelDigging && (jobManager.digJobs.queue.HasJobAt(cell) || jobManager.HasUnreachableJobAt(cell)))
+            else if (currentMode == GameMode.CancelDigging && jobManager.jobQueues[JobType.Dig].HasJobAt(cell))
             {
                 highlightTilemap.SetTile(cell, pickaxeTile);
             }
@@ -338,7 +347,22 @@ public class InputManager : MonoBehaviour
         if(currentMode == GameMode.Building)
         {
             currentBuildingData = selectedBuilding;
+            currentTrapData = null;
             buildPreview.sprite = currentBuildingData.previewSprite;
+            buildPreview.gameObject.SetActive(true);
+        }
+        else
+        {
+            buildPreview.gameObject.SetActive(false);
+        }
+    }
+    public void BuildTrap(TrapData trapData)
+    {
+        if(currentMode == GameMode.Building)
+        {
+            currentTrapData = trapData;
+            currentBuildingData = null;
+            buildPreview.sprite = trapData.previewSprite;
             buildPreview.gameObject.SetActive(true);
         }
         else

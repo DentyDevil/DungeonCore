@@ -32,7 +32,7 @@ public class DiggingState : WorkerState
 
     void Digging()
     {
-        if (!jobManager.digJobs.queue.HasJobAt(currentDiggingTile)) { worker.ChangeState(new IdleState(worker)); return; }
+        if (!jobManager.jobQueues[JobType.Dig].HasJobAt(currentDiggingTile)) { worker.ChangeState(new IdleState(worker)); return; }
 
         digTimer += Time.deltaTime;
 

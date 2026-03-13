@@ -107,7 +107,7 @@ public class PathfindingGrid : MonoBehaviour
         Node nodeToUpdate = NodeFromWorldPoint(worldPosition);
 
         nodeToUpdate.isDoor = isDoor;
-        nodeToUpdate.isWalkable = false;
+        nodeToUpdate.isWalkable = true;
 
         Debug.LogWarning($"Обновлена проходимость нода -{nodeToUpdate}. nodeToUpdate.isDoor стал - {nodeToUpdate.isDoor} и nodeToUpdate.isWalkable стал - {nodeToUpdate.isWalkable}");
     }

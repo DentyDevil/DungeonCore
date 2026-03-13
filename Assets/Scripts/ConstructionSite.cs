@@ -13,6 +13,7 @@ public class ConstructionSite : MonoBehaviour
     [SerializeField] public int maxWorkers = 1;
     [SerializeField] public bool isReadyToBuild = false;
     BuildingData buildingData;
+    TrapData trapData;
 
     float timeToBuild;
     GameObject finalBuildingPrefab;
@@ -35,6 +36,17 @@ public class ConstructionSite : MonoBehaviour
         if (timeToBuild <= 0)
         {
             cunstructionSprite.sprite = _buildingData.previewSprite;
+        }
+    }
+    public void SetTrap(TrapData _trapData)
+    {
+        timeToBuild = _trapData.timeToBuild;
+        finalBuildingPrefab = _trapData.trapPrefab;
+        trapData = _trapData;
+        resourceCost = new List<ResourceCost>(_trapData.resourceCost);
+        if(timeToBuild <= 0)
+        {
+            cunstructionSprite.sprite= _trapData.previewSprite;
         }
     }
 
@@ -82,13 +94,25 @@ public class ConstructionSite : MonoBehaviour
     {
         Debug.Log("Стройка завершена");
         GameObject newBuild = Instantiate(finalBuildingPrefab, transform.position, Quaternion.identity);
+
         Building build = newBuild.GetComponent<Building>();
-        build.recipe = new List<ResourceCost>(resourceCost);
-        build.jobManager = JobManager.Instance;
+
+        if (build != null)
+        {
+            build.recipe = new List<ResourceCost>(resourceCost);
+            build.jobManager = JobManager.Instance;
+        }
+        if (buildingData != null)
+        {
+            if (buildingData.isDoor) PathfindingManager.Instance.Grid.UpdateDoorNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
+            else PathfindingManager.Instance.Grid.UpdateNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
+        }
+        else if(trapData != null)
+        {
+            PathfindingManager.Instance.Grid.UpdateNodeWalkability(Vector3Int.FloorToInt(transform.position), true);
+        }
         JobManager.AddBuilding(build);
         JobManager.RemoveBuildJob(this);
-        if (buildingData.isDoor) PathfindingManager.Instance.Grid.UpdateDoorNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
-        else PathfindingManager.Instance.Grid.UpdateNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
         Destroy(gameObject);
     }
 
@@ -103,6 +127,7 @@ public class ConstructionSite : MonoBehaviour
             }
         }
         JobManager.RemoveBuildJob(this);
+        InputManager.Instance.occupiedCells.Remove(Vector3Int.FloorToInt(transform.position));
         Destroy(gameObject);
     }
 

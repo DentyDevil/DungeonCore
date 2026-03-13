@@ -1,6 +1,13 @@
+using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+
+public enum JobType
+{
+    Dig, Build, Haul, Deconstruct
+}
 
 public class JobManager : MonoBehaviour
 {
@@ -9,7 +16,8 @@ public class JobManager : MonoBehaviour
     [SerializeField] private DungeonCore dungeonCore;
     [SerializeField] private Pathfinding pathfinding;
     public Dictionary<Vector3Int, Building> buildings = new Dictionary<Vector3Int, Building>();
-    public HashSet<Job> unreachebleTasks = new HashSet<Job>();
+
+    public List<SkeletonWorker> allWorkers = new List<SkeletonWorker>();
 
     [Header("Priority tasks")]
     public int priorityDigTask = 3;
@@ -17,10 +25,7 @@ public class JobManager : MonoBehaviour
     public int priorityHaulTask = 3;
     public int priorityDeconstructTask = 3;
 
-    public HaulJobQueueMB haulJobs;
-    public DigJobQueueMB digJobs;
-    public BuildJobQueueMB buildJobs;
-    public DeconstructJobQueueMB deconstructJobs;
+    public Dictionary<JobType, JobQueue<Job>> jobQueues;
 
     AssignmentSystem assignmentSystem;
 
@@ -29,23 +34,45 @@ public class JobManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        assignmentSystem = new AssignmentSystem(haulJobs, digJobs, buildJobs, deconstructJobs, unreachebleTasks, this);
+
+        jobQueues = new Dictionary<JobType, JobQueue<Job>>
+        {
+            { JobType.Haul, new JobQueue<Job>() },
+            { JobType.Dig, new JobQueue<Job>() },
+            { JobType.Build, new JobQueue<Job>() },
+            {JobType.Deconstruct, new JobQueue<Job>() },
+        };
+
+        assignmentSystem = new AssignmentSystem(this);
+
+        StartCoroutine(CleanUpQueues(1f));
+    }
+
+    IEnumerator CleanUpQueues(float time)
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(time);
+            foreach (var queue in jobQueues.Values)
+            {
+                queue.CleanUp();
+            }
+        }
     }
 
     //Методы для работы с копанием
     public void AddDigJob(Vector3Int cellPos)
     {
-        var job = new DigJob(cellPos, priorityDigTask);
-        digJobs.queue.Add(job);
+        var job = new DigJob(cellPos);
+        jobQueues[JobType.Dig].Add(job);
     }
     public void RemoveDigJob(Vector3Int cellPos)
     {
-        foreach (Job deleteDigJob in digJobs.queue.GetJobs())
+        foreach (Job deleteDigJob in jobQueues[JobType.Dig].GetJobs())
         {
             if (deleteDigJob is DigJob dig && dig.GetWorldPosition() == cellPos)
             {
-                digJobs.queue.Remove(deleteDigJob);
-                unreachebleTasks.Remove(deleteDigJob);
+                jobQueues[JobType.Dig].Remove(deleteDigJob);
                 break;
             }
         }
@@ -57,22 +84,25 @@ public class JobManager : MonoBehaviour
 
     public void WakeUpDelayedTasks()
     {
-        unreachebleTasks.Clear();
+        foreach (var worker in allWorkers)
+        {
+            worker.unreachableJobs.Clear();
+        }
     }
 
     //Методы работы с строительством
     public void AddBuildJob(ConstructionSite constructionSite)
     {
-        var job = new BuildJob(constructionSite, priorityBuildTask);
-        buildJobs.queue.Add(job);
+        var job = new BuildJob(constructionSite);
+        jobQueues[JobType.Build].Add(job);
     }
     public void RemoveBuildJob(ConstructionSite constructionSite)
     {
-        foreach (Job deleteBuildJob in buildJobs.queue.GetJobs())
+        foreach (Job deleteBuildJob in jobQueues[JobType.Build].GetJobs())
         {
             if (deleteBuildJob is BuildJob BuildTask && BuildTask.constructionSite == constructionSite)
             {
-                buildJobs.queue.Remove(deleteBuildJob);
+                jobQueues[JobType.Build].Remove(deleteBuildJob);
                 break;
             }
         }
@@ -82,23 +112,23 @@ public class JobManager : MonoBehaviour
 
     public void AddHaulJob(WorldResource drop)
     {
-        var job = new HaulJob(drop, priorityHaulTask);
-        haulJobs.queue.Add(job);
+        var job = new HaulJob(drop);
+        jobQueues[JobType.Haul].Add(job);
     }
 
     //Методы работы с разбором зданий
     public void AddDeconstructJob(Building building)
     {
-        var job = new DeconstructJob(building, priorityDeconstructTask);
-        deconstructJobs.queue.Add(job);
+        var job = new DeconstructJob(building);
+        jobQueues[JobType.Deconstruct].Add(job);
     }
     public void RemoveDeconstruct(Building building)
     {
-        foreach (Job deleteDeconstructdJob in deconstructJobs.queue.GetJobs())
+        foreach (Job deleteDeconstructdJob in jobQueues[JobType.Deconstruct].GetJobs())
         {
             if (deleteDeconstructdJob is DeconstructJob deconstruct && deconstruct.building == building)
             {
-                deconstructJobs.queue.Remove(deleteDeconstructdJob);
+                jobQueues[JobType.Deconstruct].Remove(deleteDeconstructdJob);
                 break;
             }
         }
@@ -116,9 +146,9 @@ public class JobManager : MonoBehaviour
     }
 
     //Методы выдачи работы
-    public Job DelegateWork(Vector3 unitPosition)
+    public Job DelegateWork(SkeletonWorker worker)
     {
-        return assignmentSystem.GetBestJob(unitPosition);
+        return assignmentSystem.GetBestJob(worker);
     }
 
     public Job GetResourceForBuild(Vector3 unitPostion, List<ResourceData> resourceDatas)
@@ -127,7 +157,7 @@ public class JobManager : MonoBehaviour
         float minDistance = Mathf.Infinity;
         Job closestJob = null;
 
-        foreach (var task in haulJobs.queue.GetJobs())
+        foreach (var task in jobQueues[JobType.Haul].GetJobs())
         {
             if (task is HaulJob haulTask)
             {
@@ -149,18 +179,15 @@ public class JobManager : MonoBehaviour
     {
         highlight.SetTile(position, null);
     }
-
-    public bool HasUnreachableJobAt(Vector3Int pos)
+    public int GetLivePriority(JobType type)
     {
-        foreach (var unreac in unreachebleTasks)
+        switch (type)
         {
-            Vector3Int curPos = Vector3Int.FloorToInt(unreac.GetWorldPosition());
-            if(pos == curPos)
-            {
-                return true;
-
-            }
+            case JobType.Dig: return priorityDigTask;
+            case JobType.Build: return priorityBuildTask;
+            case JobType.Haul: return priorityHaulTask;
+            case JobType.Deconstruct: return priorityDeconstructTask;
+            default: return 3;
         }
-        return false;
     }
 }
