@@ -14,7 +14,7 @@ public class EnemyExploreRoomState : EnemyBaseState
     bool isWaiting;
     bool instantStart;
 
-    public EnemyExploreRoomState(WarriorEnemy enemy, EnemyStateMachine stateMachine, List<Node> _availibleTiles, int _pointsLeft, EnemyBaseState _nextState, bool _instantStart = false) : base(enemy, stateMachine)
+    public EnemyExploreRoomState(BaseEnemy enemy, EnemyStateMachine stateMachine, List<Node> _availibleTiles, int _pointsLeft, EnemyBaseState _nextState, bool _instantStart = false) : base(enemy, stateMachine)
     {
         availableTiles = _availibleTiles;
         pointsLeft = _pointsLeft;

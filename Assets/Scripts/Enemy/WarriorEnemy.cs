@@ -2,25 +2,12 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public class WarriorEnemy : MonoBehaviour, IDamageable
+public class WarriorEnemy : BaseEnemy, IDamageable
 {
-    public EnemyData enemy;
-    public EnemyStateMachine stateMachine;
-    float healthPoints;
-    private Rigidbody2D rb;
-    public Rigidbody2D Rb { get { return rb; } }
 
-    public Heap<ExplorationTarget> explorationMemory;
-    public HashSet<Vector3Int> visitedCells;
-
-    public List<Node> room;
-
-    private void Awake()
+    public override void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        healthPoints = enemy.healthPoints;
-        explorationMemory = new Heap<ExplorationTarget>(100);
-        visitedCells = new HashSet<Vector3Int>();
+        base.Awake();
     }
 
     private void Start()

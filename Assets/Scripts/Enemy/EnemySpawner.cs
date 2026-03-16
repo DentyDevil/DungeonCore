@@ -47,6 +47,7 @@ public class EnemySpawner : MonoBehaviour
     {
         int enemiesToSpawn = Random.Range(minEnemyPerWave, maxEnemyPerWave + 1);
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+        BaseEnemy leader = null;
 
         Debug.LogWarning($"Вторжение! Количество врагов: {enemiesToSpawn}. Точка: {spawnPoint.name}");
 
@@ -57,6 +58,9 @@ public class EnemySpawner : MonoBehaviour
             Vector3 offset = new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(-0.5f, 0.5f), 0);
 
             GameObject newEnemy = Instantiate(randomEnemyData.enemyPrefab, spawnPoint.position + offset, Quaternion.identity);
+            BaseEnemy enemy = newEnemy.GetComponent<BaseEnemy>();
+            if (i == 0) { enemy.isLeader = true; leader = enemy; leader.queuePosition = i; }
+            else { enemy.leader = leader; enemy.queuePosition = i; }
 
         }
     }

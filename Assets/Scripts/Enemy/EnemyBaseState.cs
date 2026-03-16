@@ -2,10 +2,10 @@ using UnityEngine;
 
 public abstract class EnemyBaseState 
 {
-    protected WarriorEnemy enemy;
+    protected BaseEnemy enemy;
     protected EnemyStateMachine stateMachine;
 
-    public EnemyBaseState(WarriorEnemy enemy, EnemyStateMachine stateMachine)
+    public EnemyBaseState(BaseEnemy enemy, EnemyStateMachine stateMachine)
     {
         this.enemy = enemy;
         this.stateMachine = stateMachine;

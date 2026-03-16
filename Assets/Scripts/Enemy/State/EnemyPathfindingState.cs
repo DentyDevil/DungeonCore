@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class EnemyPathfindingState : EnemyBaseState
 {
-    List<Node> path;
-   public EnemyPathfindingState(WarriorEnemy enemy, EnemyStateMachine stateMachine) : base(enemy, stateMachine)
+   public EnemyPathfindingState(BaseEnemy enemy, EnemyStateMachine stateMachine) : base(enemy, stateMachine)
     {
 
     }
 
     public override void Enter()
     {
-        
+        if (!enemy.isLeader) stateMachine.ChangeState(new EnemyFollowingState(enemy, stateMachine));
     }
     public override void Execute()
     {
@@ -24,21 +22,22 @@ public class EnemyPathfindingState : EnemyBaseState
             if (enemy.visitedCells.Contains(doorPos)) return;
             enemy.visitedCells.Add(doorPos);
 
-            path = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(unitPos, doorPos, false);
-
-            if (path != null && path.Count > 0)
+            enemy.path = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(unitPos, doorPos, false);
+            enemy.currentPathIndex = 0;
+            if (enemy.path != null && enemy.path.Count > 0)
             {
                 Vector3Int tileBeforeDoor = unitPos;
-                if (path.Count > 1) tileBeforeDoor = Vector3Int.FloorToInt(path[path.Count - 2].worldPosition);
+                if (enemy.path.Count > 1) tileBeforeDoor = Vector3Int.FloorToInt(enemy.path[enemy.path.Count - 2].worldPosition);
 
-                stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, path, enemy.enemy, new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine), true, tileBeforeDoor)));
+                stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, enemy.path, enemy.enemy, new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine), true, tileBeforeDoor)));
             }
             else { Debug.LogWarning("Опс! пути к двери нет"); }
         }
         else
         {
-            path = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(Vector3Int.FloorToInt(enemy.transform.position), Vector3Int.FloorToInt(DungeonCore.Instance.transform.position), true);
-            stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, path, enemy.enemy, new EnemyAttackCoreState(enemy, stateMachine)));
+            enemy.path = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(Vector3Int.FloorToInt(enemy.transform.position), Vector3Int.FloorToInt(DungeonCore.Instance.transform.position), true);
+            enemy.currentPathIndex = 0;
+            stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, enemy.path, enemy.enemy, new EnemyAttackCoreState(enemy, stateMachine)));
             Debug.LogWarning("Дверей не осталось! пора к ядру))");
         }
     }

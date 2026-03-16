@@ -9,7 +9,7 @@ public class EnemyScanState : EnemyBaseState
 
     bool exploreAfterScan;
     Vector3Int ignorePos;
-    public EnemyScanState(WarriorEnemy enemy, EnemyStateMachine stateMachine, EnemyBaseState _nexState, bool _exploreAfterScan = false, Vector3Int _ignorePos = default) : base(enemy, stateMachine)
+    public EnemyScanState(BaseEnemy enemy, EnemyStateMachine stateMachine, EnemyBaseState _nexState, bool _exploreAfterScan = false, Vector3Int _ignorePos = default) : base(enemy, stateMachine)
     {
         nexState = _nexState;
         exploreAfterScan = _exploreAfterScan;
