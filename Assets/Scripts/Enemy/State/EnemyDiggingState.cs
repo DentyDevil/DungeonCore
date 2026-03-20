@@ -34,7 +34,7 @@ public class EnemyDiggingState : EnemyBaseState
 
         if (digTimer >= timeBetweenDigging)
         {
-            if (InputManager.Instance.DamageTile(diggingTile, damageTile)) stateMachine.ChangeState(nexState);
+            if (DiggingManager.Instance.DamageTile(diggingTile, damageTile)) stateMachine.ChangeState(nexState);
             else digTimer = 0;
         }
     }

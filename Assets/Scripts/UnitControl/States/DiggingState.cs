@@ -38,7 +38,7 @@ public class DiggingState : WorkerState
 
         if (digTimer >= worker.WorkerTimeBetweenDigging)
         {
-            inputManager.DamageTile(currentDiggingTile, worker.WorkerDiggingDamage);
+            DiggingManager.Instance.DamageTile(currentDiggingTile, worker.WorkerDiggingDamage);
             digTimer = 0;
         }
     }

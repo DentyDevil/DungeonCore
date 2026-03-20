@@ -16,6 +16,8 @@ public class EnemyData : ScriptableObject
     public int damageTile;
     public float timeToOpenDoor;
     public float timeToScanRoom;
+    public float aggroRadius;
+    public float attackRange;
     public EnemyClass enemyClass;
 
     [Header("Боевые параметры")]

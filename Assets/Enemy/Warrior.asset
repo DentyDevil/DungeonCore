@@ -18,6 +18,8 @@ MonoBehaviour:
   damageTile: 100
   timeToOpenDoor: 1
   timeToScanRoom: 1
+  aggroRadius: 5
+  attackRange: 2
   enemyClass: 2
   damage: 10
   attackCoolDown: 2

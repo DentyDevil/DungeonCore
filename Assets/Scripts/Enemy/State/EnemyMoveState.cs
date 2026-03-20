@@ -87,4 +87,10 @@ public class EnemyMoveState : EnemyBaseState
             if (door != null) door.OpenDoor();  
         }
     }
+
+    public void Updatepath(List<Node> newPath)
+    {
+        path = newPath;
+        if(newPath.Count > 0) targetIndex = 1;
+    }
 }

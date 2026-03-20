@@ -37,7 +37,7 @@ public class Building : MonoBehaviour
         jobManager.RemoveDeconstruct(this);
         PathfindingManager.Instance.Grid.UpdateNodeWalkability(cell, true);
         PathfindingManager.Instance.Grid.UpdateDoorNodeWalkability(cell, false);
-        InputManager.Instance.occupiedCells.Remove(Vector3Int.FloorToInt(transform.position));
+        BuildManager.instance.occupiedCells.Remove(Vector3Int.FloorToInt(transform.position));
         Destroy(gameObject);
     }
     bool TakeDeconstructWork(float _timeToDestroy)

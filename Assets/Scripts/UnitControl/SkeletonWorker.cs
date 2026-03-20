@@ -2,10 +2,15 @@
 using System.Collections;
 using UnityEngine;
 
-public class SkeletonWorker : MonoBehaviour
+public class SkeletonWorker : MonoBehaviour, ITargetable
 {
     [Header("Skeleton characteristics")]
-    [SerializeField] private float workerSpeed = 2f;
+    public float workerSpeed = 2f;
+    public float health = 100;
+
+    public Transform TargetTransform => transform;
+    public bool IsDead() => health <= 0;
+
     public float WorkerSpeed { get { return workerSpeed; } }
     [SerializeField] int workerDiggingDamage = 10;
     public int WorkerDiggingDamage { get { return workerDiggingDamage; } }
@@ -43,6 +48,23 @@ public class SkeletonWorker : MonoBehaviour
             currentState.Execute();
         }
     }
+
+    public void TakeDamage(float damage)
+    {
+        health -= damage;
+        Debug.LogWarning($"Скелет получил - {damage} урона. Осталось - {health}HP");
+
+        if (IsDead()) Die();
+        DropResource();
+        Destroy(gameObject);
+    }
+
+    public void Die()
+    {
+        if (job != null) jobManager.JobBecomeFree(job, 1);
+
+    }
+
     public void GetAnyJob()
     {
         int maxAttempts = 5;

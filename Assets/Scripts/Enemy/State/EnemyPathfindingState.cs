@@ -10,7 +10,7 @@ public class EnemyPathfindingState : EnemyBaseState
 
     public override void Enter()
     {
-        if (!enemy.isLeader) stateMachine.ChangeState(new EnemyFollowingState(enemy, stateMachine));
+        //if (!enemy.isLeader) stateMachine.ChangeState(new EnemyFollowingState(enemy, stateMachine));
     }
     public override void Execute()
     {

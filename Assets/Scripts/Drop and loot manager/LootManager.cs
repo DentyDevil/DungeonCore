@@ -3,7 +3,13 @@ using UnityEngine;
 
 public class LootManager : MonoBehaviour
 {
+    public static LootManager Instance;
     public JobManager jobManager;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
     public void DropFromTile(Vector3Int cell, ResourceData resourceData)
     {
         if (resourceData == null) { Debug.Log("This tile dont drop anyfing"); return; }

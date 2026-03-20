@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74059835ba1730d4093a52a94304e484, type: 3}
   m_Name: Spikes
   m_EditorClassIdentifier: Assembly-CSharp::TrapData
-  damage: 100
+  damage: 10
   coolDownTime: 5
   detectDifficulty: 5
   disarmDifficulty: 5

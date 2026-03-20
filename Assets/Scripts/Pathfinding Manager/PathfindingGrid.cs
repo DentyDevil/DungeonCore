@@ -32,7 +32,7 @@ public class PathfindingGrid : MonoBehaviour
 
                 bool walkable = false;
                 int movementPenalty = 100;
-                if (!wallsTilemap.HasTile(cellPosition) && !inputManager.occupiedCells.Contains(cellPosition))
+                if (!wallsTilemap.HasTile(cellPosition) && !BuildManager.instance.occupiedCells.Contains(cellPosition))
                 {
                     walkable = true;
                     movementPenalty = 1;

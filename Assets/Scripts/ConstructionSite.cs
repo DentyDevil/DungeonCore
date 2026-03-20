@@ -127,7 +127,7 @@ public class ConstructionSite : MonoBehaviour
             }
         }
         JobManager.RemoveBuildJob(this);
-        InputManager.Instance.occupiedCells.Remove(Vector3Int.FloorToInt(transform.position));
+        BuildManager.instance.occupiedCells.Remove(Vector3Int.FloorToInt(transform.position));
         Destroy(gameObject);
     }
 

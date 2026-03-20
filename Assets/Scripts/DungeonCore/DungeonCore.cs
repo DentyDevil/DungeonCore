@@ -17,6 +17,7 @@ public class DungeonCore : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        UpdateUI();
     }
     void UpdateUI()
     {
