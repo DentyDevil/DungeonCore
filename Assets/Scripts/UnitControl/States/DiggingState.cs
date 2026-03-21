@@ -4,15 +4,13 @@ using static SkeletonWorker;
 public class DiggingState : WorkerState
 {
     JobManager jobManager;
-    InputManager inputManager;
     Vector3Int currentDiggingTile;
     private float digTimer = 0f;
 
-    public DiggingState(SkeletonWorker worker, JobManager _jobManager, Vector3Int _currentDiggingTile, InputManager _inputManager) : base(worker)
+    public DiggingState(SkeletonWorker worker, JobManager _jobManager, Vector3Int _currentDiggingTile) : base(worker)
     {
         jobManager = _jobManager;
         currentDiggingTile = _currentDiggingTile;
-        inputManager = _inputManager;
     }
 
     public override void Enter()

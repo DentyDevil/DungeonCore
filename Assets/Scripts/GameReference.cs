@@ -7,6 +7,7 @@ public class GameReference : MonoBehaviour
     public Tilemap WallsTilemap;
     public Tilemap HighlightTilemap;
     public TileBase PickaxeHighlightTile;
+    public TileBase SelectionBoxHighlightTile;
 
     private void Awake()
     {
