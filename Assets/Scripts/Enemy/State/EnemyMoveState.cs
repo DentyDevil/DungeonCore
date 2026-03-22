@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 public class EnemyMoveState : EnemyBaseState
@@ -13,6 +12,8 @@ public class EnemyMoveState : EnemyBaseState
     float doorTimer = 0f;
     float timeToOpenDoor;
 
+    int steps = 0;
+
 
     public EnemyMoveState(BaseEnemy enemy, EnemyStateMachine stateMachine, List<Node> _path, EnemyData _enemyData , EnemyBaseState nextState) : base(enemy, stateMachine)
     {
@@ -25,6 +26,7 @@ public class EnemyMoveState : EnemyBaseState
     public override void Enter()
     {
         CheckForDoorAndPause();
+        steps = 0;
     }
     public override void Execute()
     {
@@ -57,8 +59,11 @@ public class EnemyMoveState : EnemyBaseState
             if (Vector3.Distance(enemy.transform.position, path[targetIndex].worldPosition) <= stopDistance)
             {
                 targetIndex++;
+                steps++;
+                CheckForTrap();
                 if(enemy.isLeader) enemy.currentPathIndex = targetIndex;
                 CheckForDoorAndPause();
+                if (steps >= 2 && enemy.explorationMemory.Count <= 0) { Debug.Log("Осматриваюсь..."); steps = 0; stateMachine.ChangeState(new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine))); return false; }
                 
                 if (targetIndex < path.Count && path[targetIndex].isWalkable == false && path[targetIndex].isDoor == false) { stateMachine.ChangeState(new EnemyDiggingState(enemy, stateMachine, Vector3Int.FloorToInt(path[targetIndex].worldPosition), new EnemyPathfindingState(enemy, stateMachine))); return false; }
             }
@@ -83,8 +88,8 @@ public class EnemyMoveState : EnemyBaseState
         Collider2D doorCollider = Physics2D.OverlapPoint(pos);
         if (doorCollider != null)
         {
-            AutoDoor door = doorCollider.GetComponent<AutoDoor>();
-            if (door != null) door.OpenDoor();  
+            AutoDoor currDoor = doorCollider.GetComponent<AutoDoor>();
+            if (currDoor != null) { currDoor.OpenDoor(); ExplorationTarget door = enemy.explorationMemory.RemoveFirst(); Vector3Int doorPos = Vector3Int.FloorToInt(door.position); enemy.visitedCells.Add(doorPos); }  
         }
     }
 
@@ -92,5 +97,27 @@ public class EnemyMoveState : EnemyBaseState
     {
         path = newPath;
         if(newPath.Count > 0) targetIndex = 1;
+    }
+
+    void CheckForTrap()
+    {
+        for(int i = 0; i < enemyData.detectTrapDistance; i++)
+        {
+            int checkIndex = targetIndex + i;
+            if(checkIndex <  path.Count)
+            {
+                Vector3Int checkPos = Vector3Int.FloorToInt(path[checkIndex].worldPosition);
+                TrapData trap = TrapManager.instance.TryDetect(checkPos, enemyData);
+                if (trap != null)
+                {
+                    Debug.LogWarning("Ловушка обнаружена");
+                    path = path.GetRange(0, checkIndex);
+                    nextStateAfterMoving = new EnemyDisarmTrapState(enemy, stateMachine, checkPos);
+                    break;
+                }
+                
+
+            }
+        }
     }
 }

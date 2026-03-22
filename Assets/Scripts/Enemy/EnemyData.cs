@@ -25,12 +25,13 @@ public class EnemyData : ScriptableObject
     public float attackCoolDown;
 
     [Header("Навыки работы с ловушками")]
-    public float magicSkill;
-    public float mechanicalSkill;
+    public float magicDisarmSkill;
+    public float mechanicalDisarmSkill;
 
     [Header("Навыки обнаружения ловушек")]
     public float magicDetectedSkill;
     public float mechanicalDetectedSkill;
+    public int detectTrapDistance;
 
 
     [Header("Ссылки")]

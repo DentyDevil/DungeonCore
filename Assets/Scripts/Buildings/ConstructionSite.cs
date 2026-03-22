@@ -110,6 +110,8 @@ public class ConstructionSite : MonoBehaviour
         else if(trapData != null)
         {
             PathfindingManager.Instance.Grid.UpdateNodeWalkability(Vector3Int.FloorToInt(transform.position), true);
+            ActiveTrapInstance activeTrapInstance = new ActiveTrapInstance { trapData = trapData, gameObject = newBuild};
+            TrapManager.instance.AddTrap(Vector3Int.FloorToInt(transform.position), activeTrapInstance);
         }
         JobManager.AddBuilding(build);
         JobManager.RemoveBuildJob(this);

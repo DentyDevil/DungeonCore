@@ -1,6 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TrapClass
+{
+    Static,
+    Mechanical,
+    Magic
+}
+
 [CreateAssetMenu(fileName = "New Trap", menuName = "Traps/Traps Data")]
 public class TrapData : ScriptableObject
 {
@@ -10,6 +17,8 @@ public class TrapData : ScriptableObject
     public float detectDifficulty;
     public float disarmDifficulty;
     public float timeToBuild;
+    public float timeToDisarm;
+    public TrapClass trapClass;
 
     [Header("—сылки")]
     public GameObject trapPrefab;

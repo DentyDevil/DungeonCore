@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyPathfindingState : EnemyBaseState
@@ -16,11 +15,10 @@ public class EnemyPathfindingState : EnemyBaseState
     {
         if (enemy.explorationMemory.Count > 0)
         {
-            ExplorationTarget door = enemy.explorationMemory.RemoveFirst();
+            ExplorationTarget door = enemy.explorationMemory.GetFirst();
             Vector3Int unitPos = Vector3Int.FloorToInt(enemy.transform.position);
             Vector3Int doorPos = Vector3Int.FloorToInt(door.position);
             if (enemy.visitedCells.Contains(doorPos)) return;
-            enemy.visitedCells.Add(doorPos);
 
             enemy.path = PathfindingManager.Instance.EnemyPathfindingInstance.FindPath(unitPos, doorPos, false);
             enemy.currentPathIndex = 0;
@@ -31,7 +29,7 @@ public class EnemyPathfindingState : EnemyBaseState
 
                 stateMachine.ChangeState(new EnemyMoveState(enemy, stateMachine, enemy.path, enemy.enemy, new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine), true, tileBeforeDoor)));
             }
-            else { Debug.LogWarning("Опс! пути к двери нет"); }
+            else { Debug.LogWarning("Опс! пути к двери нет"); enemy.explorationMemory.RemoveFirst(); }
         }
         else
         {

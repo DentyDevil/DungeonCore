@@ -26,6 +26,4 @@ public abstract class BaseTrap : MonoBehaviour
     {
         return Time.time >= nextUseTime;
     }
-        
-    
 }

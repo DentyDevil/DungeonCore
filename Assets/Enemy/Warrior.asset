@@ -23,9 +23,10 @@ MonoBehaviour:
   enemyClass: 2
   damage: 10
   attackCoolDown: 2
-  magicSkill: 2
-  mechanicalSkill: 1
-  magicDetectedSkill: 2
-  mechanicalDetectedSkill: 3
+  magicDisarmSkill: 100
+  mechanicalDisarmSkill: 100
+  magicDetectedSkill: 100
+  mechanicalDetectedSkill: 100
+  detectTrapDistance: 3
   enemyPrefab: {fileID: 4147378177332828383, guid: bf78c79de04b31b4f9f8761bab2ebe7a, type: 3}
   previewSprite: {fileID: -9095717837082945937, guid: e6b184dc3679b9448bbef9842e482967, type: 3}

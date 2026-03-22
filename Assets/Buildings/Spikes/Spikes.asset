@@ -17,6 +17,8 @@ MonoBehaviour:
   detectDifficulty: 5
   disarmDifficulty: 5
   timeToBuild: 2
+  timeToDisarm: 4
+  trapClass: 1
   trapPrefab: {fileID: 5547814940494897909, guid: daadabe950a77fe4cbb57f333e22db81, type: 3}
   resourceCost:
   - count: 1

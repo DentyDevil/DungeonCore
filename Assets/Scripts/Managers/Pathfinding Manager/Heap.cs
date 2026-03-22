@@ -66,6 +66,11 @@ public class Heap<T> where T : IHeapItem<T>
         return item;
     }
 
+    public T GetFirst()
+    {
+        return heap[0];
+    }
+
     void SortDown(T item)
     {
         while(true)

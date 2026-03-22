@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class WarriorEnemy : BaseEnemy, IDamageable
@@ -29,7 +27,7 @@ public class WarriorEnemy : BaseEnemy, IDamageable
 
     }
 
-    void Die()
+    public void Die()
     {
         Destroy(gameObject);
         Debug.Log("Враг умер! выпал дроп...");
