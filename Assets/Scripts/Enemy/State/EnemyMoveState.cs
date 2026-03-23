@@ -89,7 +89,13 @@ public class EnemyMoveState : EnemyBaseState
         if (doorCollider != null)
         {
             AutoDoor currDoor = doorCollider.GetComponent<AutoDoor>();
-            if (currDoor != null) { currDoor.OpenDoor(); ExplorationTarget door = enemy.explorationMemory.RemoveFirst(); Vector3Int doorPos = Vector3Int.FloorToInt(door.position); enemy.visitedCells.Add(doorPos); }  
+            if (currDoor != null)
+            {
+                currDoor.OpenDoor();
+                ExplorationTarget door = enemy.explorationMemory.RemoveFirst();
+                Vector3Int doorPos = Vector3Int.FloorToInt(door.position);
+                enemy.visitedCells.Add(doorPos);
+            }
         }
     }
 

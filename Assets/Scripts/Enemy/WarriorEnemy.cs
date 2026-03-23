@@ -10,7 +10,7 @@ public class WarriorEnemy : BaseEnemy, IDamageable
 
     private void Start()
     {
-        stateMachine.Initialize(new EnemyScanState(this, stateMachine, new EnemyPathfindingState(this, stateMachine)));
+        stateMachine.Initialize(new EnemyIdleState(this, stateMachine));
     }
 
     public void TakeDamage(float damage)

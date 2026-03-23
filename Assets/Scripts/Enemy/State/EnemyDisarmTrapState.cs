@@ -33,7 +33,7 @@ public class EnemyDisarmTrapState : EnemyBaseState
             if (TrapManager.TryDisarm(trapPos, enemyData))
             {
                 Debug.LogWarning("Ловушка успешно обезврежена");
-                stateMachine.ChangeState(new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine)));
+                stateMachine.ChangeState(new EnemyIdleState(enemy, stateMachine));
             }
             else
             {
@@ -43,7 +43,7 @@ public class EnemyDisarmTrapState : EnemyBaseState
                 enemyIdmg.TakeDamage(trapDamage);
                 if (enemy.healthPoints > 0)
                 {
-                    stateMachine.ChangeState(new EnemyScanState(enemy, stateMachine, new EnemyPathfindingState(enemy, stateMachine)));
+                    stateMachine.ChangeState(new EnemyIdleState(enemy, stateMachine));
                 }
 
             }
