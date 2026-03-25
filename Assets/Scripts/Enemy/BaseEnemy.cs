@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(LineRenderer))]
 public class BaseEnemy : MonoBehaviour
 {
     public bool isLeader;
@@ -26,7 +27,8 @@ public class BaseEnemy : MonoBehaviour
     float attackRange;
     float pathUpdateTimer;
     float pathUpdateInterval = 0.5f;
-
+    [HideInInspector]
+    public LineRenderer pathLine;
     public virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -36,6 +38,9 @@ public class BaseEnemy : MonoBehaviour
         stateMachine = GetComponent<EnemyStateMachine>();
         aggroRadius = enemy.aggroRadius;
         attackRange = enemy.attackRange;
+
+        pathLine = GetComponent<LineRenderer>();
+        pathLine.enabled = false;
     }
     private void FixedUpdate()
     {

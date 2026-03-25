@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class TrapManager : MonoBehaviour
@@ -15,8 +14,6 @@ public class TrapManager : MonoBehaviour
 
     public TrapData TryDetect(Vector3Int trapPos, EnemyData enemyData)
     {
-        Debug.LogWarning($"Враг сканирует клетку: {trapPos}. Ловушек в базе: {activeTraps.Count}");
-
         if (activeTraps.TryGetValue(trapPos, out ActiveTrapInstance trapInstance) && trapInstance != null)
         {
             switch (trapInstance.trapData.trapClass)
@@ -58,7 +55,7 @@ public class TrapManager : MonoBehaviour
 
     public TrapData GetTrapData(Vector3Int trapPos)
     {
-        if(activeTraps.ContainsKey(trapPos)) return activeTraps[trapPos].trapData;
+        if (activeTraps.ContainsKey(trapPos)) return activeTraps[trapPos].trapData;
         return null;
     }
 
@@ -74,15 +71,27 @@ public class TrapManager : MonoBehaviour
                 sColor.a = 0.5f;
                 sprite.color = sColor;
             }
-                activeTraps.Remove(trapPos);
+            activeTraps.Remove(trapPos);
         }
     }
     public void AddTrap(Vector3Int trapPos, ActiveTrapInstance trapData)
     {
-        if(trapData != null) activeTraps.Add(trapPos, trapData);
+        if (trapData != null) activeTraps.Add(trapPos, trapData);
     }
     public void RemoveTrap(Vector3Int trapPos)
     {
         activeTraps.Remove(trapPos);
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (activeTraps == null || activeTraps.Count == 0) return;
+
+        Gizmos.color = Color.red;
+
+        foreach (var trap in activeTraps)
+        {
+            Gizmos.DrawCube(trap.Value.gameObject.transform.position, Vector3.one);
+        }
     }
 }

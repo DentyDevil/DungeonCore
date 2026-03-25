@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+using System;
 using UnityEngine;
 
 public class AutoDoor : MonoBehaviour
@@ -7,6 +7,7 @@ public class AutoDoor : MonoBehaviour
     int unitstOnDoor = 0;
 
     public bool isOpen = false;
+
     private void Awake()
     {
         doorsprite = GetComponent<SpriteRenderer>();
@@ -30,6 +31,7 @@ public class AutoDoor : MonoBehaviour
 
     public void OpenDoor()
     {
+        if (isOpen) return;
         doorsprite.enabled = false;
         isOpen = true;
     }

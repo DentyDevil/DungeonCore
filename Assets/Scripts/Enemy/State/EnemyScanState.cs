@@ -25,7 +25,7 @@ public class EnemyScanState : EnemyBaseState
         if (dungeonMap != null && dungeonMap.Count > 0 && exploreAfterScan)
         {
             dungeonMap.Remove(startPos);
-            stateMachine.ChangeState(new EnemyExploreRoomState(enemy, stateMachine, dungeonMap, 3, nexState, true));
+            //stateMachine.ChangeState(new EnemyExploreRoomState(enemy, stateMachine, dungeonMap, 3, nexState, true));
         }
         else
         {   

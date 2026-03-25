@@ -5,16 +5,47 @@ public class EnemyScanAroundState : EnemyBaseState
 {
 
     List<Node> scannedTiles;
-    public EnemyScanAroundState(BaseEnemy enemy, EnemyStateMachine stateMachine) : base(enemy, stateMachine)
+    bool isScanRoom = false;
+    Vector3? poseAfterDoor;
+    EnemyBaseState nexState;
+    public EnemyScanAroundState(BaseEnemy enemy, EnemyStateMachine stateMachine, bool _isScanRoom = false, Vector3? _poseAfterDoor = null, EnemyBaseState _nextState = null) : base(enemy, stateMachine)
     {
-
+        isScanRoom = _isScanRoom;
+        poseAfterDoor = _poseAfterDoor;
+        nexState = _nextState;
     }
     public override void Enter()
     {
-        Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
-        scannedTiles = ScanDungeon(enemyPos, DungeonCore.Instance.maxRoomSize);
-        if (scannedTiles != null) enemy.room = scannedTiles;
-        stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
+        if (!isScanRoom)
+        {
+            Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
+            scannedTiles = ScanDungeon(enemyPos, DungeonCore.Instance.maxRoomSize);
+            if (scannedTiles != null) enemy.room = scannedTiles;
+            stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
+        }
+        else if (isScanRoom) 
+        {
+            Node startPosInRoom;
+            if (poseAfterDoor.HasValue && nexState != null)
+            {
+                startPosInRoom = PathfindingManager.Instance.Grid.NodeFromWorldPoint(poseAfterDoor.Value);
+                scannedTiles = ScanDungeon(startPosInRoom, DungeonCore.Instance.maxRoomSize);
+                if (scannedTiles != null)
+                {
+                    enemy.room = scannedTiles;
+                    Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
+                    enemy.room.Remove(enemyPos);
+                    Debug.LogWarning("Комната успешно просканированна!");
+                    stateMachine.ChangeState(nexState);
+                }
+
+            }
+            else
+            {
+                Debug.LogWarning("Комната не просканированна!");
+                stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
+            }
+        }
     }
     public override void Execute()
     {
