@@ -18,11 +18,17 @@ public class EnemyExploreDungeon : EnemyBaseState
             Vector3 doorPos = enemy.explorationMemory.GetFirst().position;
             Vector3Int target = Vector3Int.FloorToInt(doorPos);
 
-            Vector3Int behindDoor = Vector3Int.FloorToInt(GetPositionBehindDoor(doorPos, enemy.room));
-           
+            Vector3Int behindDoor = Vector3Int.FloorToInt(GetPositionBehindDoor(doorPos));
 
+            if (RoomManager.Instance.tileRoomMap.TryGetValue(behindDoor, out RoomData room))
+            {
+                stateMachine.ChangeState(new EnemyMovingState(enemy, stateMachine, target, new EnemyExploreRoomState(enemy, stateMachine, room, 3)));
+            }
+            else
+            {
+                stateMachine.ChangeState(new EnemyIdleState(enemy, stateMachine));
+            }
             
-            stateMachine.ChangeState(new EnemyMovingState(enemy, stateMachine, target, new EnemyScanAroundState(enemy,stateMachine, true, behindDoor, new EnemyExploreRoomState(enemy, stateMachine, 3))));
         }
         else
         {
@@ -35,23 +41,16 @@ public class EnemyExploreDungeon : EnemyBaseState
 
     }
 
-    Vector3 GetPositionBehindDoor(Vector3 doorPos, List<Node> currentRoom)
+    Vector3 GetPositionBehindDoor(Vector3 doorPos)
     {
         Node doorNode = PathfindingManager.Instance.Grid.NodeFromWorldPoint(doorPos);
         if (doorNode == null || !doorNode.isDoor) return doorPos;
 
         foreach (Node neighbors in PathfindingManager.Instance.Grid.GetOrthogonalNeighbors(doorNode))
         {
-            if(neighbors.isWalkable && !neighbors.isDoor)
+            if(neighbors.isWalkable && !neighbors.isDoor && Vector3Int.FloorToInt(neighbors.worldPosition) != Vector3Int.FloorToInt(enemy.transform.position))
             {
-                if(currentRoom != null && !currentRoom.Contains(neighbors))
-                {
-                    return neighbors.worldPosition;
-                }
-                else if(currentRoom == null)
-                {
-                    return neighbors.worldPosition;
-                }
+               return neighbors.worldPosition;
             }
         }
         return doorPos;

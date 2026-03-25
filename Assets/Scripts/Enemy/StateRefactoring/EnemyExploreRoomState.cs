@@ -1,26 +1,28 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyExploreRoomState : EnemyBaseState
 {
-    List<Node> roomTiles;
+    List<Vector3Int> roomTiles;
+    List<Vector3Int> doors;
 
     int pointsLeft;
 
     float waitDuration => enemy.enemy.timeToScanRoom;
     float timer;
 
-    public EnemyExploreRoomState(BaseEnemy enemy, EnemyStateMachine stateMachine, int _pointsLeft) : base(enemy, stateMachine)
+    public EnemyExploreRoomState(BaseEnemy enemy, EnemyStateMachine stateMachine, RoomData roomData, int _pointsLeft) : base(enemy, stateMachine)
     {
         pointsLeft = _pointsLeft;
-        
+        roomTiles = new(roomData.RoomTiles);
+        doors = roomData.DoorsInRoom;
     }
 
     public override void Enter()
     {
-        roomTiles = new List<Node>(enemy.room);
-
         timer = 0;
+        GetAllDoorsInRoom();    
     }
     public override void Execute()
     {
@@ -45,14 +47,13 @@ public class EnemyExploreRoomState : EnemyBaseState
 
     void GoToRandomPoint()
     {
-        Node randomTarget = roomTiles[Random.Range(0, roomTiles.Count)];
+        Vector3Int randomTarget = roomTiles[Random.Range(0, roomTiles.Count)];
         roomTiles.Remove(randomTarget);
 
-        Vector3Int targetPos = Vector3Int.FloorToInt(randomTarget.worldPosition);
 
         if (pointsLeft > 0)
         {
-            stateMachine.ChangeState(new EnemyMovingState(enemy, stateMachine, targetPos, this));
+            stateMachine.ChangeState(new EnemyMovingState(enemy, stateMachine, randomTarget, this));
             Debug.LogWarning($"ѕосещаю клетку комнаты... ќсталось посетить - {pointsLeft}");
             pointsLeft--;
         }
@@ -63,5 +64,17 @@ public class EnemyExploreRoomState : EnemyBaseState
         }
     }
 
-   
+    void GetAllDoorsInRoom()
+    {
+        foreach (Vector3Int doorPosInt in doors)
+        {
+            if (!enemy.visitedCells.Contains(doorPosInt))
+            {
+                float priority = Random.Range(-0.5f, 0.5f);
+                ExplorationTarget newDoor = new ExplorationTarget { position = doorPosInt + new Vector3(0.5f, 0.5f, 0), priority = priority };
+                enemy.explorationMemory.Add(newDoor);
+                Debug.LogWarning($"дверь - {doorPosInt} приоритет - {priority} добавлена в пам€ть исследовани€");
+            }
+        }
+    }
 }

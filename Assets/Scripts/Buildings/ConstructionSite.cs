@@ -104,7 +104,7 @@ public class ConstructionSite : MonoBehaviour
         }
         if (buildingData != null)
         {
-            if (buildingData.isDoor) PathfindingManager.Instance.Grid.UpdateDoorNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
+            if (buildingData.isDoor) { PathfindingManager.Instance.Grid.UpdateDoorNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true); RoomManager.Instance.CreateRoom(newBuild.GetComponent<AutoDoor>()); }
             else PathfindingManager.Instance.Grid.UpdateNodeWalkability(Vector3Int.FloorToInt(build.transform.position), true);
         }
         else if(trapData != null)
