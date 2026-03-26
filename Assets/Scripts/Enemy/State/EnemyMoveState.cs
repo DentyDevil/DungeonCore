@@ -118,7 +118,7 @@ public class EnemyMoveState : EnemyBaseState
                 {
                     Debug.LogWarning("Ловушка обнаружена");
                     path = path.GetRange(0, checkIndex);
-                    nextStateAfterMoving = new EnemyDisarmTrapState(enemy, stateMachine, checkPos);
+                    //nextStateAfterMoving = new EnemyDisarmTrapState(enemy, stateMachine, target ,checkPos);
                     break;
                 }
                 

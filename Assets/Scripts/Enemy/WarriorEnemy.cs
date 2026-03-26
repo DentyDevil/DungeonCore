@@ -35,14 +35,14 @@ public class WarriorEnemy : BaseEnemy, IDamageable
 
     private void OnDrawGizmos()
     {
-        if (room == null || room.Count == 0) return;
+        //    if (room == null || room.Count == 0) return;
 
-        Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
+        //    Gizmos.color = new Color(0f, 1f, 0f, 0.5f);
 
-        foreach (Node node in room)
-        {
-            Gizmos.DrawCube(node.worldPosition, Vector3.one);
-        }
+        //    foreach (Node node in room)
+        //    {
+        //        Gizmos.DrawCube(node.worldPosition, Vector3.one);
+        //    }
 
         if (explorationMemory == null || explorationMemory.Count == 0) return;
 

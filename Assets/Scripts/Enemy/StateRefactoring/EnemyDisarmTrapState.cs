@@ -7,9 +7,16 @@ public class EnemyDisarmTrapState : EnemyBaseState
     float timeToDisarm =>  TrapManager.instance.GetTrapData(trapPos).timeToDisarm;
     EnemyData enemyData => enemy.enemy;
     TrapManager TrapManager => TrapManager.instance;
-    public EnemyDisarmTrapState(BaseEnemy enemy, EnemyStateMachine stateMachine, Vector3Int _trapPos) : base(enemy, stateMachine)
+
+    EnemyBaseState returnState;
+    Vector3Int target;
+    bool isWalkingToCoreReturData;
+    public EnemyDisarmTrapState(BaseEnemy enemy, EnemyStateMachine stateMachine, Vector3Int _trapPos, Vector3Int target, bool isWalkingToCoreReturData, EnemyBaseState returnState) : base(enemy, stateMachine)
     {
         trapPos = _trapPos;
+        this.returnState = returnState;
+        this.target = target;
+        this.isWalkingToCoreReturData = isWalkingToCoreReturData;
     }
 
     public override void Enter()
@@ -33,7 +40,7 @@ public class EnemyDisarmTrapState : EnemyBaseState
             if (TrapManager.TryDisarm(trapPos, enemyData))
             {
                 Debug.LogWarning("Ловушка успешно обезврежена");
-                stateMachine.ChangeState(new EnemyIdleState(enemy, stateMachine));
+                stateMachine.ChangeState(new EnemyMovingState(enemy, stateMachine, target, returnState, _isWalkingToCore: isWalkingToCoreReturData));
             }
             else
             {
@@ -43,7 +50,7 @@ public class EnemyDisarmTrapState : EnemyBaseState
                 enemyIdmg.TakeDamage(trapDamage);
                 if (enemy.healthPoints > 0)
                 {
-                    stateMachine.ChangeState(new EnemyIdleState(enemy, stateMachine));
+                    stateMachine.ChangeState(new EnemyMovingState(enemy, stateMachine, target, returnState, _isWalkingToCore: isWalkingToCoreReturData));
                 }
 
             }

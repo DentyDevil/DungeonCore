@@ -14,6 +14,11 @@ public class EnemyMovingState : EnemyBaseState
     float doorTimer = 0;
     float timeToOpenDoor => enemy.enemy.timeToOpenDoor;
 
+    float timerTolookAround = 0;
+    float howoftenLookAround = 3;
+
+    bool isWalkingToCore = false;
+
     private Vector3Int target;
     Vector3 EnemyPos => enemy.transform.position;
     EnemyData enemyData => enemy.enemy;
@@ -21,23 +26,26 @@ public class EnemyMovingState : EnemyBaseState
     private List<Node> path = new();
 
     private LineRenderer lr => enemy.pathLine;
-    public EnemyMovingState(BaseEnemy enemy, EnemyStateMachine stateMachine, Vector3Int _target, EnemyBaseState nextStateAfterReachingTarger, float _stopDistance = 0) : base(enemy, stateMachine)
+    public EnemyMovingState(BaseEnemy enemy, EnemyStateMachine stateMachine, Vector3Int _target, EnemyBaseState nextStateAfterReachingTarger, float _stopDistance = 0, bool _isWalkingToCore = false) : base(enemy, stateMachine)
     {
         nextState = nextStateAfterReachingTarger;
         stopDistanceSqr = _stopDistance * _stopDistance;
         target = _target;
+        isWalkingToCore = _isWalkingToCore;
     }
     public override void Enter()
     {
-        isPathAvailible = TryGetPathToTarget();
+        Debug.Log($"Текущее состояние - {stateMachine.CurrentState}");
+        SpriteRenderer sprite = enemy.GetComponent<SpriteRenderer>();
+        sprite.color = Color.blue;
+        if (!isOpeningDoor) isPathAvailible = TryGetPathToTarget();
+        CheckForTrap();
         if (isPathAvailible && path != null && path.Count > 0)
         {
             lr.enabled = true;
             DrawPath();     
         }
         if (isPathAvailible) ChechkForDoorAndPause();
-        steps = 0;
-        doorTimer = 0;
     }
     public override void Execute()
     {
@@ -56,6 +64,7 @@ public class EnemyMovingState : EnemyBaseState
             if (steps >= howOftenToCheckPath && enemy.explorationMemory.Count <= 0)
             {
                 isPathAvailible = TryGetPathToTarget();
+                CheckForTrap();
                 steps = 0;
                 if (isPathAvailible) { ChechkForDoorAndPause(); DrawPath(); }
             }
@@ -68,6 +77,8 @@ public class EnemyMovingState : EnemyBaseState
             {
                 DrawPath();
             }
+
+            LookAround();
         }
     }
     public override void Exit()
@@ -97,6 +108,28 @@ public class EnemyMovingState : EnemyBaseState
             return true;
         }
         return false;
+    }
+
+    void LookAround()
+    {
+        if (isWalkingToCore)
+        {
+            timerTolookAround += Time.deltaTime;
+            if (timerTolookAround >= howoftenLookAround && !isOpeningDoor)
+            {
+                timerTolookAround = 0;
+                if (enemy.explorationMemory.Count <= 0)
+                {
+                    Debug.LogWarning("Случилось сканирование");
+                    stateMachine.ChangeState(new EnemyScanAroundState(enemy, stateMachine, this));
+                }
+            }
+            if (enemy.explorationMemory.Count > 0)
+            {
+                Debug.LogWarning("При сканировании нашлись двери ");
+                stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
+            }
+        }
     }
 
     private bool TryGetPathToTarget()
@@ -139,8 +172,11 @@ public class EnemyMovingState : EnemyBaseState
     {
         if (pathIndex < path.Count && path[pathIndex].isDoor)
         {
-            doorTimer = 0;
-            isOpeningDoor = true;
+            if (!isOpeningDoor)
+            {
+                doorTimer = 0;
+                isOpeningDoor = true;
+            }
         }
     }
     void OpenDoorAt(Vector3 pos)
@@ -177,7 +213,8 @@ public class EnemyMovingState : EnemyBaseState
                 if (trap != null)
                 {
                     path = path.GetRange(0, checkIndex);
-                    nextState = new EnemyDisarmTrapState(enemy, stateMachine, checkPos);
+                    bool previousData_IsWalkingToCore = isWalkingToCore;
+                    nextState = new EnemyDisarmTrapState(enemy, stateMachine, checkPos, target, previousData_IsWalkingToCore, nextState);
                     break;
                 }
 

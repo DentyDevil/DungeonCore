@@ -3,49 +3,50 @@ using UnityEngine;
 
 public class EnemyScanAroundState : EnemyBaseState
 {
-
-    List<Node> scannedTiles;
-    bool isScanRoom = false;
-    Vector3? poseAfterDoor;
     EnemyBaseState nexState;
-    public EnemyScanAroundState(BaseEnemy enemy, EnemyStateMachine stateMachine, bool _isScanRoom = false, Vector3? _poseAfterDoor = null, EnemyBaseState _nextState = null) : base(enemy, stateMachine)
+    public EnemyScanAroundState(BaseEnemy enemy, EnemyStateMachine stateMachine, EnemyBaseState _nextState = null) : base(enemy, stateMachine)
     {
-        isScanRoom = _isScanRoom;
-        poseAfterDoor = _poseAfterDoor;
         nexState = _nextState;
     }
     public override void Enter()
     {
-        if (!isScanRoom)
-        {
-            Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
-            scannedTiles = ScanDungeon(enemyPos, DungeonCore.Instance.maxRoomSize);
-            if (scannedTiles != null) enemy.room = scannedTiles;
-            stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
-        }
-        else if (isScanRoom) 
-        {
-            Node startPosInRoom;
-            if (poseAfterDoor.HasValue && nexState != null)
-            {
-                startPosInRoom = PathfindingManager.Instance.Grid.NodeFromWorldPoint(poseAfterDoor.Value);
-                scannedTiles = ScanDungeon(startPosInRoom, DungeonCore.Instance.maxRoomSize);
-                if (scannedTiles != null)
-                {
-                    enemy.room = scannedTiles;
-                    Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
-                    enemy.room.Remove(enemyPos);
-                    Debug.LogWarning("Комната успешно просканированна!");
-                    stateMachine.ChangeState(nexState);
-                }
+        Debug.Log($"Текущее состояние - {stateMachine.CurrentState}");
+        SpriteRenderer sprite = enemy.GetComponent<SpriteRenderer>();
+        sprite.color = Color.yellow;
+        Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
+        ScanDungeon(enemyPos, DungeonCore.Instance.maxRoomSize);
+        if(nexState != null) stateMachine.ChangeState(nexState);
+        else stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
+        //if (!isScanRoom)
+        //{
+        //    Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
+        //    scannedTiles = ScanDungeon(enemyPos, DungeonCore.Instance.maxRoomSize);
+        //    if (scannedTiles != null) enemy.room = scannedTiles;
+        //    stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
+        //}
+        //else if (isScanRoom) 
+        //{
+        //    Node startPosInRoom;
+        //    if (poseAfterDoor.HasValue && nexState != null)
+        //    {
+        //        startPosInRoom = PathfindingManager.Instance.Grid.NodeFromWorldPoint(poseAfterDoor.Value);
+        //        scannedTiles = ScanDungeon(startPosInRoom, DungeonCore.Instance.maxRoomSize);
+        //        if (scannedTiles != null)
+        //        {
+        //            enemy.room = scannedTiles;
+        //            Node enemyPos = PathfindingManager.Instance.Grid.NodeFromWorldPoint(enemy.transform.position);
+        //            enemy.room.Remove(enemyPos);
+        //            Debug.LogWarning("Комната успешно просканированна!");
+        //            stateMachine.ChangeState(nexState);
+        //        }
 
-            }
-            else
-            {
-                Debug.LogWarning("Комната не просканированна!");
-                stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
-            }
-        }
+        //    }
+        //    else
+        //    {
+        //        Debug.LogWarning("Комната не просканированна!");
+        //        stateMachine.ChangeState(new EnemyExploreDungeon(enemy, stateMachine));
+        //    }
+        //}
     }
     public override void Execute()
     {
@@ -56,7 +57,7 @@ public class EnemyScanAroundState : EnemyBaseState
 
     }
 
-    List<Node> ScanDungeon(Node startNode, int maxSize)
+    void ScanDungeon(Node startNode, int maxSize)
     {
         Queue<Node> queue = new Queue<Node>();
         HashSet<Node> roomTiles = new HashSet<Node>();
@@ -79,7 +80,7 @@ public class EnemyScanAroundState : EnemyBaseState
                     roomTiles.Add(roomTileNeighbors);
                     queue.Enqueue(roomTileNeighbors);
                 }
-                else if (roomTileNeighbors.isDoor)
+                if (roomTileNeighbors.isDoor)
                 {
                     if (foundDoors.Contains(roomTileNeighbors) || enemy.visitedCells.Contains(Vector3Int.FloorToInt(roomTileNeighbors.worldPosition))) continue;
 
@@ -105,7 +106,7 @@ public class EnemyScanAroundState : EnemyBaseState
             }
         }
         Debug.LogWarning($"Дверей найдено - {foundDoors.Count}");
-        Debug.LogWarning($"Проходимых тайлов найдено - {roomTiles.Count}");
-        return new List<Node>(roomTiles);
+        //Debug.LogWarning($"Проходимых тайлов найдено - {roomTiles.Count}");
+        //return new List<Node>(roomTiles);
     }
 }

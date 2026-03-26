@@ -1,19 +1,20 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyExploreRoomState : EnemyBaseState
 {
     List<Vector3Int> roomTiles;
     List<Vector3Int> doors;
+    RoomData roomData;
 
     int pointsLeft;
 
     float waitDuration => enemy.enemy.timeToScanRoom;
     float timer;
 
-    public EnemyExploreRoomState(BaseEnemy enemy, EnemyStateMachine stateMachine, RoomData roomData, int _pointsLeft) : base(enemy, stateMachine)
+    public EnemyExploreRoomState(BaseEnemy enemy, EnemyStateMachine stateMachine, RoomData _roomData, int _pointsLeft) : base(enemy, stateMachine)
     {
+        roomData = _roomData;
         pointsLeft = _pointsLeft;
         roomTiles = new(roomData.RoomTiles);
         doors = roomData.DoorsInRoom;
@@ -21,8 +22,12 @@ public class EnemyExploreRoomState : EnemyBaseState
 
     public override void Enter()
     {
+        Debug.Log($"Текущее состояние - {stateMachine.CurrentState}");
+        SpriteRenderer sprite = enemy.GetComponent<SpriteRenderer>();
+        sprite.color = Color.red;
         timer = 0;
         GetAllDoorsInRoom();    
+        roomData.IsCleared = true;
     }
     public override void Execute()
     {
@@ -68,11 +73,21 @@ public class EnemyExploreRoomState : EnemyBaseState
     {
         foreach (Vector3Int doorPosInt in doors)
         {
-            if (!enemy.visitedCells.Contains(doorPosInt))
+            if (enemy.visitedCells.Contains(doorPosInt)) continue;
+            bool isAlreadyInMemory = false;
+
+            foreach (ExplorationTarget doorsInMemory in enemy.explorationMemory.GetItems())
             {
-                float priority = Random.Range(-0.5f, 0.5f);
-                ExplorationTarget newDoor = new ExplorationTarget { position = doorPosInt + new Vector3(0.5f, 0.5f, 0), priority = priority };
-                enemy.explorationMemory.Add(newDoor);
+                if (Vector3Int.FloorToInt(doorsInMemory.position) == doorPosInt) { isAlreadyInMemory = true; break; }
+            }
+
+            if (!isAlreadyInMemory)
+            {
+                Vector3 doorPos = doorPosInt + new Vector3(0.5f, 0.5f, 0);
+                float distance = Vector3.Distance(enemy.transform.position, doorPos);
+                float priority = distance + Random.Range(-0.5f, 0.5f);
+                enemy.explorationMemory.Add(new ExplorationTarget { position = doorPos, priority = priority });
+
                 Debug.LogWarning($"дверь - {doorPosInt} приоритет - {priority} добавлена в память исследования");
             }
         }

@@ -31,7 +31,7 @@ public class RoomManager : MonoBehaviour
 
                 if (roomTiles.Count < 100)
                 {
-                    RoomData newRoom = new RoomData(roomTiles, nextRoomId);
+                    RoomData newRoom = new RoomData(roomTiles, nextRoomId, false);
                     newRoom.DoorsInRoom.AddRange(doors.Distinct());
 
                     foreach (var roomTile in roomTiles)
