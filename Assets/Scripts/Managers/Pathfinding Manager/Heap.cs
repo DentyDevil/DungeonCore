@@ -125,4 +125,15 @@ public class Heap<T> where T : IHeapItem<T>
 
         return items;
     }
+    public void Remove(T item)
+    {
+        int originalIndex = item.HeapIndex;
+        heapCount--;
+        if (originalIndex < heapCount)
+        {
+            heap[originalIndex] = heap[heapCount];
+            heap[originalIndex].HeapIndex = originalIndex;
+            UpdateItem(heap[originalIndex]);
+        }
+    }
 }

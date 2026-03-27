@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 public class EnemyMovingState : EnemyBaseState
 {
     EnemyBaseState nextState;
@@ -38,13 +38,17 @@ public class EnemyMovingState : EnemyBaseState
         Debug.Log($"Текущее состояние - {stateMachine.CurrentState}");
         SpriteRenderer sprite = enemy.GetComponent<SpriteRenderer>();
         sprite.color = Color.blue;
+
         if (!isOpeningDoor) isPathAvailible = TryGetPathToTarget();
+
         CheckForTrap();
+
         if (isPathAvailible && path != null && path.Count > 0)
         {
             lr.enabled = true;
             DrawPath();     
         }
+
         if (isPathAvailible) ChechkForDoorAndPause();
     }
     public override void Execute()
@@ -59,6 +63,7 @@ public class EnemyMovingState : EnemyBaseState
             }
             return;
         }
+
         if (!isOpeningDoor)
         {
             if (steps >= howOftenToCheckPath && enemy.explorationMemory.Count <= 0)
@@ -188,16 +193,17 @@ public class EnemyMovingState : EnemyBaseState
             if (currDoor != null)
             {
                 currDoor.OpenDoor();
-                Vector3Int doorPos = Vector3Int.FloorToInt(pos);
+                Vector3Int doorPosInt = Vector3Int.FloorToInt(pos);
 
                 if (enemy.explorationMemory.Count > 0)
                 {
-                    ExplorationTarget plannedDoor = enemy.explorationMemory.GetFirst();
-
-                    if (Vector3Int.FloorToInt(plannedDoor.position) == doorPos) enemy.explorationMemory.RemoveFirst();
+                    foreach (var doors in enemy.explorationMemory.GetItems())
+                    {
+                        if (Vector3Int.FloorToInt(doors.position) == doorPosInt) { enemy.explorationMemory.Remove(doors); break; }
+                    }
                 }
 
-                enemy.visitedCells.Add(doorPos);
+                enemy.visitedCells.Add(doorPosInt);
             }
         }
     }
@@ -206,7 +212,7 @@ public class EnemyMovingState : EnemyBaseState
         for (int i = 0; i < enemyData.detectTrapDistance; i++)
         {
             int checkIndex = pathIndex + i;
-            if (checkIndex < path.Count)
+            if (path != null && checkIndex < path.Count)
             {
                 Vector3Int checkPos = Vector3Int.FloorToInt(path[checkIndex].worldPosition);
                 TrapData trap = TrapManager.instance.TryDetect(checkPos, enemyData);

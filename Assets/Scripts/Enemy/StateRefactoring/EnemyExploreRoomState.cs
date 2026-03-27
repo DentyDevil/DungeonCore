@@ -26,8 +26,8 @@ public class EnemyExploreRoomState : EnemyBaseState
         SpriteRenderer sprite = enemy.GetComponent<SpriteRenderer>();
         sprite.color = Color.red;
         timer = 0;
-        GetAllDoorsInRoom();    
-        roomData.IsCleared = true;
+        GetAllDoorsInRoom();
+        enemy.exploredRooms.Add(roomData);
     }
     public override void Execute()
     {

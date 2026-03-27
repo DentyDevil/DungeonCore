@@ -51,7 +51,7 @@ public class EnemyExploreDungeon : EnemyBaseState
         {
             if (RoomManager.Instance.tileRoomMap.TryGetValue(Vector3Int.FloorToInt(neighbors.worldPosition), out RoomData room))
             {
-                if (neighbors.isWalkable && !neighbors.isDoor && !room.IsCleared)
+                if (neighbors.isWalkable && !neighbors.isDoor && !enemy.exploredRooms.Contains(room))
                 {
                     return Vector3Int.FloorToInt(neighbors.worldPosition);
                 }

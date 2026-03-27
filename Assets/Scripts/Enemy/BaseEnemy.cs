@@ -12,6 +12,7 @@ public class BaseEnemy : MonoBehaviour
     [SerializeField] public Rigidbody2D rb;
     [SerializeField] public float healthPoints;
     public Heap<ExplorationTarget> explorationMemory;
+    public HashSet<RoomData> exploredRooms;
     public HashSet<Vector3Int> visitedCells;
     public List<Node> room;
     public EnemyData enemy;
@@ -23,10 +24,10 @@ public class BaseEnemy : MonoBehaviour
     public LayerMask targetLayer; 
     public ITargetable currentTarget;
 
-    float aggroRadius;
-    float attackRange;
-    float pathUpdateTimer;
-    float pathUpdateInterval = 0.5f;
+    //float aggroRadius;
+    //float attackRange;
+    //float pathUpdateTimer;
+    //float pathUpdateInterval = 0.5f;
     [HideInInspector]
     public LineRenderer pathLine;
     public virtual void Awake()
@@ -34,10 +35,11 @@ public class BaseEnemy : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         healthPoints = enemy.healthPoints;
         explorationMemory = new Heap<ExplorationTarget>(100);
+        exploredRooms = new HashSet<RoomData>(50);
         visitedCells = new HashSet<Vector3Int>();
         stateMachine = GetComponent<EnemyStateMachine>();
-        aggroRadius = enemy.aggroRadius;
-        attackRange = enemy.attackRange;
+        //aggroRadius = enemy.aggroRadius;
+        //attackRange = enemy.attackRange;
 
         pathLine = GetComponent<LineRenderer>();
         pathLine.enabled = false;
@@ -109,4 +111,24 @@ public class BaseEnemy : MonoBehaviour
     //    }
     //    currentTarget = closestTarget;
     //}
+
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if(collision != null && collision.CompareTag("Door"))
+        {
+            if(collision.TryGetComponent<AutoDoor>(out var door))
+            {
+                ExplorationTarget doorToRemove = null;
+                foreach (var doorFromMemory in explorationMemory.GetItems())
+                {
+                    if(Vector3Int.FloorToInt(doorFromMemory.position) == Vector3Int.FloorToInt(door.transform.position) && door.isOpen)
+                    {
+                        doorToRemove = doorFromMemory;
+                        break;
+                    }
+                }
+                if (doorToRemove != null) { explorationMemory.Remove(doorToRemove); visitedCells.Add(Vector3Int.FloorToInt(doorToRemove.position)); }
+            }
+        } 
+    }
 }
