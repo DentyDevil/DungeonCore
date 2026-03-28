@@ -13,7 +13,7 @@ public abstract class BaseTrap : MonoBehaviour
 
     public abstract void TryActivate(Collider2D target);
 
-    public virtual void OnTriggerEnter2D(Collider2D collision)
+    public virtual void OnTriggerStay2D(Collider2D collision)
     {
         if (collision.CompareTag(targetTag) && CanActivate())
         {

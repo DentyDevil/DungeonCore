@@ -18,6 +18,7 @@ public class TrapData : ScriptableObject
     public float disarmDifficulty;
     public float timeToBuild;
     public float timeToDisarm;
+    public int maxUsesBeforBroken;
     public TrapClass trapClass;
 
     [Header("—сылки")]
